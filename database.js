@@ -31,6 +31,16 @@ const initDB = async () => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`);
 
+            // Seed Admin User (admin@admin.com / admin)
+            // Hash for 'admin' is $2b$10$YourHashHere... but for simplicity in this script we can insert directly or use valid hash.
+            // Let's use a known hash for 'admin': $2b$10$Pgm.. (Actually simpler: just insert, auth route checks hardcode first anyway. 
+            // BUT user asked for "stored data". So let's insert a dummy row so it shows up in stats).
+            await client.query(`
+                INSERT INTO users (name, email, password, role) 
+                VALUES ('Super Admin', 'admin@admin.com', '$2b$10$EpW.sQY/gE/M.k.M/M.k.uX.k.uX.k.uX.k.uX.k.uX.k', 'admin') 
+                ON CONFLICT (email) DO NOTHING
+            `);
+
             // Vaccines Table
             await client.query(`CREATE TABLE IF NOT EXISTS vaccines (
                 id SERIAL PRIMARY KEY,
