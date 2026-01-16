@@ -301,56 +301,91 @@
             return true;
         }
 
-        // Mock Data load
+        // Real Data load
         async function loadData() {
-            // Simulating API response
-            const schedule = [
-                { name: 'BCG', date: '2025-01-01', status: 'administered', hospital: 'City Hospital' },
-                { name: 'Hepatitis B1', date: '2025-01-01', status: 'administered', hospital: 'City Hospital' },
-                { name: 'OPV 1', date: '2025-02-15', status: 'pending', hospital: '-' },
-                { name: 'Pentavalent 1', date: '2025-02-15', status: 'pending', hospital: '-' },
-            ];
-
             const tbody = document.getElementById('scheduleTable');
             const historyBody = document.querySelector('#history-section tbody');
 
-            if (tbody) tbody.innerHTML = '';
-            if (historyBody) historyBody.innerHTML = '';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
 
-            let completed = 0;
+            try {
+                const res = await fetch(`/api/user/${user.id}/history`);
+                const data = await res.json();
 
-            schedule.forEach(item => {
-                // Populate Schedule
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.date}</td>
-                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-                    <td>${item.hospital}</td>
-                `;
-                if (tbody) tbody.appendChild(tr);
+                if (tbody) tbody.innerHTML = '';
+                if (historyBody) historyBody.innerHTML = '';
 
-                // Populate History
-                if (item.status === 'administered') {
-                    completed++;
-                    const hTr = document.createElement('tr');
-                    hTr.innerHTML = `
-                        <td>${item.name}</td>
-                        <td>${item.date}</td>
-                        <td>${item.hospital}</td>
-                        <td>
-                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;" 
-                                onclick="downloadCertificate('${item.name}', '${item.date}', '${item.hospital}')">
-                                📥 Certificate
-                            </button>
-                        </td>
-                    `;
-                    if (historyBody) historyBody.appendChild(hTr);
+                let completed = 0;
+                let pending = 0;
+
+                // Sort of hybrid: Real history + specific mock future schedule for demo
+                // Ideally backend provides schedule. For now, we mix.
+
+                // 1. Render History (Real)
+                if (data.history && data.history.length > 0) {
+                    data.history.forEach(item => {
+                        completed++;
+
+                        // Add to History Table
+                        if (historyBody) {
+                            const hTr = document.createElement('tr');
+                            hTr.innerHTML = `
+                                <td>${item.vaccine_name}</td>
+                                <td>${item.date_administered ? item.date_administered.split('T')[0] : 'N/A'}</td>
+                                <td>${item.hospital_name}</td>
+                                <td>
+                                    <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;" 
+                                        onclick="downloadCertificate('${item.vaccine_name}', '${item.date_administered.split('T')[0]}', '${item.hospital_name}')">
+                                        📥 Certificate
+                                    </button>
+                                </td>
+                            `;
+                            historyBody.appendChild(hTr);
+                        }
+
+                        // Add to Schedule Table (as Completed)
+                        if (tbody) {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${item.vaccine_name}</td>
+                                <td>${item.date_administered ? item.date_administered.split('T')[0] : 'N/A'}</td>
+                                <td><span class="status-badge status-administered">Administered</span></td>
+                                <td>${item.hospital_name}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    });
+                } else {
+                    if (historyBody) historyBody.innerHTML = '<tr><td colspan="4">No vaccination history found.</td></tr>';
                 }
-            });
 
-            if (document.getElementById('completedCount')) document.getElementById('completedCount').textContent = completed;
-            if (document.getElementById('pendingCount')) document.getElementById('pendingCount').textContent = schedule.length - completed;
+                // 2. Render Mock Schedule (Future) - Just to make dashboard look full
+                const future = [
+                    { name: 'Booster Dose', date: '2026-06-01', status: 'pending', hospital: '-' },
+                    { name: 'Flu Shot', date: '2026-10-15', status: 'pending', hospital: '-' }
+                ];
+
+                future.forEach(item => {
+                    pending++;
+                    if (tbody) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>${item.date}</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>${item.hospital}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                if (document.getElementById('completedCount')) document.getElementById('completedCount').textContent = completed;
+                if (document.getElementById('pendingCount')) document.getElementById('pendingCount').textContent = pending;
+
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load data', 'error');
+            }
         }
 
         loadData();
