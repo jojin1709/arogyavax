@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - ArogyaVax</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">🩺 ArogyaVax</a>
+            </div>
+            <div class="nav-links">
+                <span id="userName" style="font-weight: 600;">Patient</span>
+                <button id="theme-toggle" class="btn-outline"
+                    style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
+                <button onclick="logout()" class="btn-outline">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active">📊 Overview</a>
+            <a href="#" class="sidebar-link">📅 My Schedule</a>
+            <a href="#book" class="sidebar-link">🏥 Book Appointment</a>
+            <a href="#" class="sidebar-link">📁 History</a>
+            <a href="#" class="sidebar-link">⚙️ Settings</a>
+        </aside>
+
+        <main class="main-content">
+            <div id="overview-section">
+                <h2>My Vaccination Status</h2>
+                <br>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Vaccines</h4>
+                            <p>12</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Completed</h4>
+                            <p id="completedCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Pending</h4>
+                            <p id="pendingCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Vaccination Schedule</h3>
+                    <br>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vaccine Name</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Hospital</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Booking Section (Hidden by default, for now simple implementation) -->
+            <div id="booking-section" style="margin-top: 2rem;">
+                <h3>Book Vaccination Appointment</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form id="bookingForm">
+                        <div class="form-group">
+                            <label>Select Vaccine</label>
+                            <select>
+                                <option>OPV (Oral Polio Vaccine)</option>
+                                <option>Hepatitis B</option>
+                                <option>Pentavalent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Date</label>
+                            <input type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Hospital</label>
+                            <select>
+                                <option>City General Hospital</option>
+                                <option>Community Health Center</option>
+                                <option>Medicare Clinic</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Confirm Booking</button>
+                    </form>
+                </div>
+            </div>
+            <!-- History Section -->
+            <div id="history-section" style="margin-top: 2rem; display: none;">
+                <h3>Vaccination History</h3>
+                <br>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vaccine</th>
+                                <th>Date Administered</th>
+                                <th>Hospital</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Mock Data -->
+                            <tr>
+                                <td>BCG</td>
+                                <td>2021-05-20</td>
+                                <td>City General Hospital</td>
+                                <td><span class="status-badge status-administered">Administered</span></td>
+                            </tr>
+                            <tr>
+                                <td>Hepatitis B</td>
+                                <td>2021-06-20</td>
+                                <td>City General Hospital</td>
+                                <td><span class="status-badge status-administered">Administered</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" style="margin-top: 2rem; display: none;">
+                <h3>Profile Settings</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="updateName" placeholder="Update Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="updatePhone" placeholder="Update Phone">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password (Optional)</label>
+                            <input type="password" id="updatePassword" placeholder="New Password">
+                        </div>
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <button class="chatbot-toggler"><span>💬</span></button>
+    <div class="chatbot">
+        <header>
+            <h2>ArogyaVax Assistant</h2>
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
+        </header>
+        <ul class="chatbox">
+            <li class="chat incoming">
+                <p>Hello! Need help booking an appointment?</p>
+            </li>
+        </ul>
+        <div class="chat-input">
+            <textarea placeholder="Type a message..." required></textarea>
+            <span id="send-btn">➤</span>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'patient') {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('userName').textContent = user.name;
+            // Pre-fill profile form
+            if (document.getElementById('updateName')) document.getElementById('updateName').value = user.name;
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Navigation Logic
+        const links = document.querySelectorAll('.sidebar-link');
+
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const text = link.textContent.trim();
+                let targetId = null;
+
+                // Determine target based on text content
+                if (text.includes('Overview')) targetId = 'overview-section';
+                if (text.includes('Schedule')) targetId = 'overview-section'; // Schedule is part of overview
+                if (text.includes('Book')) targetId = 'booking-section';
+                if (text.includes('History')) targetId = 'history-section';
+                if (text.includes('Settings')) targetId = 'settings-section';
+
+                if (targetId) {
+                    e.preventDefault();
+                    // Update Active Link
+                    links.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    // Hide all sections
+                    document.querySelectorAll('main > div').forEach(div => div.style.display = 'none');
+                    // Show target
+                    const target = document.getElementById(targetId);
+                    if (target) target.style.display = 'block';
+                }
+            });
+        });
+
+        // Profile Update Logic
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            profileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('updateName').value;
+                const phone = document.getElementById('updatePhone').value;
+                const password = document.getElementById('updatePassword').value;
+
+                try {
+                    const res = await fetch('/api/auth/update-profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: user.id, name, phone, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        alert('Profile updated! Please login again.');
+                        logout();
+                    } else {
+                        alert(data.error);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error updating profile.');
+                }
+            });
+        }
+
+        function downloadCertificate(vaccineName, date, hospital) {
+            const certWindow = window.open('', 'PRINT', 'height=600,width=800');
+            certWindow.document.write(`
+                <html>
+                <head>
+                    <title>Vaccination Certificate - ${vaccineName}</title>
+                    <link rel="stylesheet" href="css/style.css">
+                    <style>
+                        body { padding: 40px; font-family: 'Inter', sans-serif; text-align: center; border: 10px solid #065F46; }
+                        h1 { color: #065F46; margin-bottom: 5px; }
+                        h2 { font-weight: 400; color: #555; }
+                        .content { margin-top: 50px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 2; font-size: 1.2rem; }
+                        .seal { margin-top: 50px; font-size: 3rem; }
+                        .footer { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 0.9rem; color: #777; }
+                    </style>
+                </head>
+                <body>
+                    <h1>ArogyaVax</h1>
+                    <h2>Certificate of Vaccination</h2>
+                    <hr style="width: 50%; border-color: #065F46;">
+                    
+                    <div class="content">
+                        <p><strong>Beneficiary Name:</strong> ${user.name}</p>
+                        <p><strong>Vaccine Name:</strong> ${vaccineName}</p>
+                        <p><strong>Date Administered:</strong> ${date}</p>
+                        <p><strong>Vaccinated At:</strong> ${hospital}</p>
+                        <p><strong>Status:</strong> <span style="color: green; font-weight: bold;">Fully Vaccinated</span></p>
+                    </div>
+
+                    <div class="seal">🛡️</div>
+                    <div class="footer">
+                        This is a computer-generated certificate.
+                    </div>
+                </body>
+                </html>
+            `);
+            certWindow.document.close();
+            certWindow.focus();
+            setTimeout(() => { certWindow.print(); }, 1000);
+            return true;
+        }
+
+        // Mock Data load
+        async function loadData() {
+            // Simulating API response
+            const schedule = [
+                { name: 'BCG', date: '2025-01-01', status: 'administered', hospital: 'City Hospital' },
+                { name: 'Hepatitis B1', date: '2025-01-01', status: 'administered', hospital: 'City Hospital' },
+                { name: 'OPV 1', date: '2025-02-15', status: 'pending', hospital: '-' },
+                { name: 'Pentavalent 1', date: '2025-02-15', status: 'pending', hospital: '-' },
+            ];
+
+            const tbody = document.getElementById('scheduleTable');
+            const historyBody = document.querySelector('#history-section tbody');
+
+            if (tbody) tbody.innerHTML = '';
+            if (historyBody) historyBody.innerHTML = '';
+
+            let completed = 0;
+
+            schedule.forEach(item => {
+                // Populate Schedule
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.date}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                    <td>${item.hospital}</td>
+                `;
+                if (tbody) tbody.appendChild(tr);
+
+                // Populate History
+                if (item.status === 'administered') {
+                    completed++;
+                    const hTr = document.createElement('tr');
+                    hTr.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.date}</td>
+                        <td>${item.hospital}</td>
+                        <td>
+                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;" 
+                                onclick="downloadCertificate('${item.name}', '${item.date}', '${item.hospital}')">
+                                📥 Certificate
+                            </button>
+                        </td>
+                    `;
+                    if (historyBody) historyBody.appendChild(hTr);
+                }
+            });
+
+            if (document.getElementById('completedCount')) document.getElementById('completedCount').textContent = completed;
+            if (document.getElementById('pendingCount')) document.getElementById('pendingCount').textContent = schedule.length - completed;
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

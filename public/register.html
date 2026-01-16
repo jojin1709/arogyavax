@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ArogyaVax</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">🩺 ArogyaVax</a>
+            </div>
+            <div class="nav-links">
+                <button id="theme-toggle" class="btn-outline" style="border:none; font-size: 1.2rem;">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="auth-container">
+        <h2>Create an Account</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+            <div class="form-group">
+                <label for="role">I am a...</label>
+                <select id="role" name="role">
+                    <option value="patient">Patient / Parent</option>
+                    <option value="nurse">Nurse / Hospital Staff</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="aadhaar">Aadhaar Number (Optional)</label>
+                <input type="text" id="aadhaar" name="aadhaar">
+            </div>
+            <button type="submit" class="btn" style="width: 100%">Register</button>
+        </form>
+        <div class="auth-footer">
+            Already have an account? <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <!-- OTP Modal -->
+    <div id="otpModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div
+            style="background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1rem; color: var(--primary);">Verify Your Email</h3>
+            <p style="margin-bottom: 1.5rem; color: #666;">We have sent a verification code to your email.</p>
+
+            <!-- Hidden OTP by default -->
+            <div
+                style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed #0ea5e9;">
+                <p id="hiddenOtpMsg" style="font-size: 0.9rem; color: #555; margin-bottom: 0.5rem;">Check your
+                    email/console for code</p>
+                <button type="button" onclick="revealOtp()"
+                    style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">
+                    👁️ Show Simulated OTP
+                </button>
+                <p id="simOtpDisplay"
+                    style="display: none; font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; letter-spacing: 2px;">
+                </p>
+            </div>
+
+            <input type="text" id="otpInput" placeholder="Enter 4-digit Code" maxlength="4"
+                style="width: 100%; padding: 0.8rem; font-size: 1.2rem; text-align: center; letter-spacing: 0.5rem; margin-bottom: 1.5rem; border: 2px solid #ddd; border-radius: 6px;">
+
+            <button onclick="verifyOtp()" class="btn" style="width: 100%; margin-bottom: 0.8rem;">Verify &
+                Register</button>
+            <button onclick="closeOtpModal()" class="btn-outline" style="width: 100%; border: none;">Cancel</button>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        let serverOtp = null;
+        let pendingFormData = null;
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            pendingFormData = new FormData(e.target);
+            const email = document.getElementById('email').value;
+
+            if (!email) {
+                alert('Please enter email to verify.');
+                return;
+            }
+
+            // Step 1: Send OTP
+            try {
+                const res = await fetch('/api/auth/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    serverOtp = data.otp;
+                    // Reset UI
+                    document.getElementById('simOtpDisplay').style.display = 'none';
+                    document.getElementById('simOtpDisplay').textContent = serverOtp;
+                    document.getElementById('otpModal').style.display = 'flex';
+                    document.getElementById('otpInput').value = '';
+                    document.getElementById('otpInput').focus();
+                } else {
+                    alert('Error sending OTP: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection Error');
+            }
+        });
+
+        function revealOtp() {
+            document.getElementById('simOtpDisplay').style.display = 'block';
+        }
+
+        function closeOtpModal() {
+            document.getElementById('otpModal').style.display = 'none';
+        }
+
+        async function verifyOtp() {
+            const userOtp = document.getElementById('otpInput').value;
+            // Loose equality check in case of string/number difference
+            if (userOtp == serverOtp) {
+                // Success
+                document.getElementById('otpModal').style.display = 'none';
+                await registerUser(pendingFormData);
+            } else {
+                alert('❌ Invalid OTP. Please try again.');
+            }
+        }
+
+        async function registerUser(formData) {
+            const data = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Force redirect to login page as requested
+                    alert('✅ Account Verified & Created! \n\nPlease Login now.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(result.error || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during registration.');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Vaccine Centers - ArogyaVax</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .search-bar {
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 1rem;
+        }
+
+        .center-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .center-info h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .center-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .tag {
+            background: #D1FAE5;
+            color: #065F46;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">🩺 ArogyaVax</a>
+            </div>
+            <div class="nav-links">
+                <button id="theme-toggle" class="btn-outline" style="border:none; font-size: 1.2rem;">🌙</button>
+                <a href="centers.html" class="active">Find Centers</a>
+                <a href="about.html">About</a>
+                <a href="login.html" class="btn-outline">Login</a>
+                <a href="register.html" class="btn">Register</a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero" style="min-height: 30vh; padding: 3rem 2rem;">
+        <div class="hero-content" style="text-align: center; display: block;">
+            <h1>Locate Vaccination Centers</h1>
+            <p>Find hospitals, clinics, and health centers near you.</p>
+        </div>
+    </section>
+
+    <section class="features" style="padding-top: 0;">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search by Pincode, City, or Hospital Name...">
+            <button class="btn" onclick="searchCenters()">Search</button>
+        </div>
+
+        <div id="centers-list" style="max-width: 800px; margin: 0 auto;">
+            <!-- Mock Data initially -->
+            <div class="center-card">
+                <div class="center-info">
+                    <h3>City General Hospital</h3>
+                    <p>📍 Downtown, Main Street, Cityville - 560001</p>
+                    <p style="margin-top: 0.5rem;">
+                        Available: <span class="tag">Covishield</span> <span class="tag">Covaxin</span> <span
+                            class="tag">Polio</span>
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: green; font-weight: bold; margin-bottom: 0.5rem;">50 Slots</p>
+                    <a href="login.html" class="btn-outline" style="font-size: 0.9rem;">Book Now</a>
+                </div>
+            </div>
+
+            <div class="center-card">
+                <div class="center-info">
+                    <h3>Community Health Center</h3>
+                    <p>📍 North Block, Sector 4, Cityville - 560004</p>
+                    <p style="margin-top: 0.5rem;">
+                        Available: <span class="tag">Polio</span> <span class="tag">Hepatitis B</span>
+                    </p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: orange; font-weight: bold; margin-bottom: 0.5rem;">12 Slots</p>
+                    <a href="login.html" class="btn-outline" style="font-size: 0.9rem;">Book Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 ArogyaVax. All rights reserved.</p>
+    </footer>
+    <script src="js/main.js"></script>
+    <script>
+        function searchCenters() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.center-card');
+
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

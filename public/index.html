@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArogyaVax - Smart Immunization System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                🩺 ArogyaVax
+            </div>
+            <div class="nav-links">
+                <button id="theme-toggle" class="btn-outline" style="border:none; font-size: 1.2rem;">🌙</button>
+                <a href="centers.html">Find Centers</a>
+                <a href="about.html">About</a>
+                <a href="login.html" class="btn-outline">Login</a>
+                <a href="register.html" class="btn">Register</a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Smart Immunization for a Healthier Future</h1>
+                <p>Digitally manage vaccination records, schedules, and reminders for your family. A secure platform for
+                    parents, hospitals, and administrators.</p>
+                <div class="hero-buttons">
+                    <a href="register.html" class="btn">Get Started</a>
+                    <a href="#features" class="btn-outline">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-image-container">
+                <img src="images/hero.png" alt="Vaccination"
+                    style="max-width: 100%; width: 100%; height: auto; border-radius: 12px; box-shadow: var(--shadow);">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="section-title">
+            <h2>Why Choose ArogyaVax?</h2>
+            <p>Comprehensive features designed to ensure no vaccine is missed.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Automated Schedule</h3>
+                <p>Never track dates manually again. Get an auto-generated vaccination chart based on date of birth.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3>Smart Reminders</h3>
+                <p>Receive timely SMS and Email alerts before upcoming vaccination dates.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📁</div>
+                <h3>Digital Records</h3>
+                <p>Maintain a secure, permanent digital history of all administered vaccines.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏥</div>
+                <h3>Hospital Network</h3>
+                <p>Connect with verified hospitals and clinics for safe administration.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 ArogyaVax. All rights reserved.</p>
+        <p>Built for a healthier tomorrow.</p>
+    </footer>
+    <!-- Chatbot Widget -->
+    <button class="chatbot-toggler">
+        <span>💬</span>
+    </button>
+    <div class="chatbot">
+        <header>
+            <h2>ArogyaVax Assistant</h2>
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
+        </header>
+        <ul class="chatbox">
+            <li class="chat incoming">
+                <p>Hi there! 👋<br>How can I help you with your vaccination needs today?</p>
+            </li>
+        </ul>
+        <div class="chat-input">
+            <textarea placeholder="Type a message..." required></textarea>
+            <span id="send-btn">➤</span>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Load Announcements
+        const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+        if (announcements.length > 0) {
+            const header = document.querySelector('header');
+            const tickerContainer = document.createElement('div');
+            tickerContainer.className = 'news-ticker-container';
+
+            const tickerContent = document.createElement('div');
+            tickerContent.className = 'news-content';
+
+            // Show ONLY the latest announcement (Index 0)
+            const latest = announcements[0];
+            tickerContent.innerHTML = `<span class="news-item">📢 <strong>${latest.title}:</strong> ${latest.msg}</span>`;
+
+            tickerContainer.appendChild(tickerContent);
+
+            // Insert below header
+            header.insertAdjacentElement('afterend', tickerContainer);
+        }
+    </script>
+</body>
+
+</html>

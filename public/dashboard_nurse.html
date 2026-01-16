@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nurse Dashboard - ArogyaVax</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">🩺 ArogyaVax Nurse</a>
+            </div>
+            <div class="nav-links">
+                <button id="theme-toggle" class="btn-outline"
+                    style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
+                <button onclick="logout()" class="btn-outline">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active">💉 Administer Vaccine</a>
+            <a href="#" class="sidebar-link">📝 Daily List</a>
+            <a href="#" class="sidebar-link">🔍 Search Patient</a>
+        </aside>
+
+        <main class="main-content">
+            <h2>Administer Vaccine</h2>
+            <br>
+            <div class="auth-container" style="margin: 0; max-width: 600px;">
+                <form id="administerForm">
+                    <div class="form-group">
+                        <label for="phone">Patient Phone Number / Aadhaar</label>
+                        <input type="text" id="patientIdentifier" placeholder="Enter identifier" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vaccine">Select Vaccine</label>
+                        <select id="vaccineSelect">
+                            <option value="1">BCG</option>
+                            <option value="2">Hepatitis B</option>
+                            <option value="3">OPV</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Mark as Administered</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <button class="chatbot-toggler"><span>💬</span></button>
+    <div class="chatbot">
+        <header>
+            <h2>Nurse Assistant</h2>
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
+        </header>
+        <ul class="chatbox">
+            <li class="chat incoming">
+                <p>Ready to assist with records.</p>
+            </li>
+        </ul>
+        <div class="chat-input">
+            <textarea placeholder="Type a message..." required></textarea>
+            <span id="send-btn">➤</span>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'nurse') {
+            window.location.href = 'login.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('administerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('patientIdentifier').value;
+            const vaccineSelect = document.getElementById('vaccineSelect');
+            const vaccineId = vaccineSelect.value;
+            const vaccineName = vaccineSelect.options[vaccineSelect.selectedIndex].text;
+
+            try {
+                const res = await fetch('/api/record-vaccine', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, vaccineId, vaccineName })
+                });
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert(`✅ Success: ${result.message} for ${result.patient}`);
+                    document.getElementById('administerForm').reset();
+                } else {
+                    alert(`❌ Error: ${result.error}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('System Error');
+            }
+        });
+    </script>
+</body>
+
+</html>

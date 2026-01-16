@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ArogyaVax</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">🩺 ArogyaVax Admin</a>
+            </div>
+            <div class="nav-links">
+                <button id="theme-toggle" class="btn-outline"
+                    style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
+                <button onclick="logout()" class="btn-outline">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active">📊 System Overview</a>
+            <a href="#" class="sidebar-link">🏥 Manage Hospitals</a>
+            <a href="#" class="sidebar-link">💉 Manage Slots</a>
+            <a href="#" class="sidebar-link">
+                📊 Reports & Analytics
+            </a>
+            <a href="#" class="sidebar-link">
+                📦 Stock Management
+            </a>
+            <a href="#" class="sidebar-link">
+                📢 CMS / Announcements
+            </a>
+            <a href="#" class="sidebar-link">📑 Reports</a>
+        </aside>
+
+        <main class="main-content">
+            <!-- Overview Section -->
+            <div id="overview-section">
+                <h2>Admin Overview</h2>
+                <br>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Registered Patients</h4>
+                            <p id="patientCount">150</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Active Hospitals</h4>
+                            <p id="hospitalCount">12</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Vaccinations</h4>
+                            <p id="vaxCount">840</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Hospitals Section -->
+            <div id="hospitals-section" style="display: none; margin-top: 2rem;">
+                <h3>Manage Hospitals</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <h4>Add New Hospital</h4>
+                    <form onsubmit="event.preventDefault(); alert('Hospital Added!');">
+                        <div class="form-group">
+                            <label>Hospital Name</label>
+                            <input type="text" placeholder="Enter Hospital Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Location / Pincode</label>
+                            <input type="text" placeholder="Enter Location" required>
+                        </div>
+                        <button type="submit" class="btn">Add Hospital</button>
+                    </form>
+                </div>
+                <!-- List (Mock) -->
+                <div style="margin-top: 2rem;">
+                    <h4>Registered Hospitals</h4>
+                    <ul id="hospitalList" style="list-style: none; margin-top: 1rem;">
+                        <li
+                            style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
+                            <span>City General Hospital (560001)</span>
+                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Edit</button>
+                        </li>
+                        <li
+                            style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
+                            <span>Community Health Center (560004)</span>
+                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Edit</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Manage Slots Section -->
+            <div id="slots-section" style="display: none; margin-top: 2rem;">
+                <h3>Manage Vaccine Stock & Slots</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form onsubmit="event.preventDefault(); alert('Stock Updated!');">
+                        <div class="form-group">
+                            <label>Select Hospital</label>
+                            <select>
+                                <option>City General Hospital</option>
+                                <option>Community Health Center</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Vaccine</label>
+                            <select>
+                                <option>Covishield</option>
+                                <option>Covaxin</option>
+                                <option>Polio</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Add Slots / Quantity</label>
+                            <input type="number" placeholder="Enter Quantity" required>
+                        </div>
+                        <button type="submit" class="btn">Update Stock</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- CMS Section -->
+            <div id="cms-section" style="display: none; margin-top: 2rem;">
+                <h3>Content Management (CMS)</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <h4>Post New Announcement</h4>
+                    <form id="announcementForm">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="announceTitle" placeholder="Announcement Title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea id="announceMsg" rows="4"
+                                style="width: 100%; padding: 0.8rem; border:1px solid var(--border-color); border-radius: 8px;"
+                                placeholder="Enter message..."></textarea>
+                        </div>
+                        <button type="submit" class="btn">Post Announcement</button>
+                    </form>
+                </div>
+            </div>
+            <!-- Reminders Feature -->
+            <div class="auth-container" style="margin: 2rem 0 0 0; max-width: 600px;">
+                <h4>🔔 Daily Reminders</h4>
+                <p style="margin-bottom: 1rem; color: var(--gray);">Send automated SMS/Email reminders to patients due
+                    for vaccination.</p>
+                <button class="btn-outline" onclick="alert('✅ Reminders sent to 15 patients due tomorrow!')">Send
+                    Reminders Now</button>
+            </div>
+            <!-- Reports Section (Charts) -->
+            <div id="reports-section" style="display: none; margin-top: 2rem;">
+                <h3>📊 System Analytics</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem;">
+                    <div
+                        style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <canvas id="vaccinationChart"></canvas>
+                    </div>
+                    <div
+                        style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Management Section -->
+            <div id="stock-section" style="display: none; margin-top: 2rem;">
+                <h3>📦 Vaccine Inventory</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <!-- Add Stock -->
+                    <div
+                        style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <h4>Add New Stock</h4>
+                        <form id="addStockForm" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label>Vaccine Name</label>
+                                <select id="vaccineNameStock"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="Covaxin">Covaxin</option>
+                                    <option value="Covishield">Covishield</option>
+                                    <option value="Polio">Polio</option>
+                                    <option value="Hepatitis B">Hepatitis B</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity (Doses)</label>
+                                <input type="number" id="stockQuantity" min="1" required
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <button type="submit" class="btn" style="width: 100%;">update Stock</button>
+                        </form>
+                    </div>
+
+                    <!-- View Stock -->
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vaccine</th>
+                                    <th>Current Stock</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <button class="chatbot-toggler"><span>💬</span></button>
+    <div class="chatbot">
+        <header>
+            <h2>System Assistant</h2>
+            <span class="close-btn"
+                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
+        </header>
+        <ul class="chatbox">
+            <li class="chat incoming">
+                <p>Reporting systems active.</p>
+            </li>
+        </ul>
+        <div class="chat-input">
+            <textarea placeholder="Type a message..." required></textarea>
+            <span id="send-btn">➤</span>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // --- CHART JS LOGIC ---
+        let chartsInitialized = false;
+        function initCharts() {
+            if (chartsInitialized) return;
+
+            // Vaccination Trends (Mock Monthly Data)
+            const ctx1 = document.getElementById('vaccinationChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Vaccinations Administered',
+                        data: [12, 19, 3, 5, 2, 3], // Mock data
+                        borderColor: '#059669',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)'
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Monthly Trends' } } }
+            });
+
+            // Gender Distribution (Mock)
+            const ctx2 = document.getElementById('genderChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male', 'Female', 'Other'],
+                    datasets: [{
+                        data: [55, 45, 5],
+                        backgroundColor: ['#3B82F6', '#EC4899', '#9CA3AF']
+                    }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Demographics' } } }
+            });
+
+            chartsInitialized = true;
+        }
+
+        // --- STOCK LOGIC ---
+        async function loadStock() {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/stock');
+                const data = await res.json();
+                tbody.innerHTML = '';
+                if (!data.stock || data.stock.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3">No stock data. Add some!</td></tr>';
+                    return;
+                }
+                data.stock.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.vaccine_name}</td>
+                        <td>${item.quantity} doses</td>
+                        <td><button class="btn-outline" style="padding:0.2rem 0.5rem">Update</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="3">Error loading stock</td></tr>';
+            }
+        }
+
+        document.getElementById('addStockForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const vaccineName = document.getElementById('vaccineNameStock').value;
+            const quantity = document.getElementById('stockQuantity').value;
+
+            try {
+                const res = await fetch('/api/stock/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vaccineName, quantity })
+                });
+                if (res.ok) {
+                    alert('Stock Added! 📦');
+                    e.target.reset();
+                    loadStock();
+                } else {
+                    alert('Failed to add stock');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to server');
+            }
+        });
+
+        // --- ANNOUNCEMENT LOGIC ---
+        document.getElementById('announcementForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('announceTitle').value;
+            const msg = document.getElementById('announceMsg').value;
+
+            const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+            announcements.unshift({ title, msg, date: new Date().toLocaleDateString() });
+            localStorage.setItem('announcements', JSON.stringify(announcements));
+
+            alert('Success! Announcement has been posted to the Home Page. ✅');
+            e.target.reset();
+        });
+
+        // --- NAVIGATION LOGIC ---
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Remove active class from all
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                // Add to clicked
+                e.target.closest('.sidebar-link').classList.add('active');
+
+                // Hide all sections
+                document.getElementById('overview-section').style.display = 'none';
+                document.getElementById('hospitals-section').style.display = 'none';
+                document.getElementById('slots-section').style.display = 'none';
+                document.getElementById('cms-section').style.display = 'none';
+                document.getElementById('reports-section').style.display = 'none';
+                document.getElementById('stock-section').style.display = 'none';
+
+                // Show target
+                const text = e.target.textContent.trim();
+                if (text.includes('Overview')) document.getElementById('overview-section').style.display = 'block';
+                else if (text.includes('Hospitals')) document.getElementById('hospitals-section').style.display = 'block';
+                else if (text.includes('Slots')) document.getElementById('slots-section').style.display = 'block';
+                else if (text.includes('CMS')) document.getElementById('cms-section').style.display = 'block';
+                else if (text.includes('Reports')) {
+                    document.getElementById('reports-section').style.display = 'block';
+                    setTimeout(initCharts, 100);
+                }
+                else if (text.includes('Stock')) {
+                    document.getElementById('stock-section').style.display = 'block';
+                    loadStock();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
