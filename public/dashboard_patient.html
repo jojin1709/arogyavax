@@ -36,7 +36,10 @@
         <main class="main-content">
             <div id="overview-section">
                 <h2>My Vaccination Status</h2>
-                <br>
+
+                <!-- Reminders Section -->
+                <div id="reminders-container" style="margin-bottom: 2rem;"></div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-info">
@@ -355,29 +358,55 @@
                             tbody.appendChild(tr);
                         }
                     });
-                } else {
-                    if (historyBody) historyBody.innerHTML = '<tr><td colspan="4">No vaccination history found.</td></tr>';
+                    if (document.querySelector('#history-section tbody')) document.querySelector('#history-section tbody').innerHTML = '<tr><td colspan="4">No vaccination history found.</td></tr>';
                 }
 
-                // 2. Render Mock Schedule (Future) - Just to make dashboard look full
-                const future = [
-                    { name: 'Booster Dose', date: '2026-06-01', status: 'pending', hospital: '-' },
-                    { name: 'Flu Shot', date: '2026-10-15', status: 'pending', hospital: '-' }
-                ];
+                // 2. Fetch and Render Reminders (Intelligent System)
+                const remindersRes = await fetch(`/api/patient/${user.id}/reminders`);
+                const remindersData = await remindersRes.json();
+                const remindersContainer = document.getElementById('reminders-container');
 
-                future.forEach(item => {
-                    pending++;
-                    if (tbody) {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${item.name}</td>
-                            <td>${item.date}</td>
-                            <td><span class="status-badge status-pending">Pending</span></td>
-                            <td>${item.hospital}</td>
-                        `;
-                        tbody.appendChild(tr);
+                if (remindersContainer) {
+                    remindersContainer.innerHTML = '';
+                    if (remindersData.reminders && remindersData.reminders.length > 0) {
+                        remindersData.reminders.forEach(r => {
+                            pending++; // Count upcoming/due in pending stats
+
+                            const div = document.createElement('div');
+                            div.className = `alert alert-${r.alertLevel}`;
+                            div.style.padding = '15px';
+                            div.style.marginBottom = '10px';
+                            div.style.borderRadius = '8px';
+                            div.style.fontWeight = '500';
+
+                            // Simple inline styles for alert colors
+                            if (r.alertLevel === 'danger') {
+                                div.style.backgroundColor = '#fee2e2'; div.style.color = '#dc2626'; div.style.border = '1px solid #fecaca';
+                            } else if (r.alertLevel === 'success') {
+                                div.style.backgroundColor = '#dcfce7'; div.style.color = '#16a34a'; div.style.border = '1px solid #bbf7d0';
+                            } else if (r.alertLevel === 'warning') {
+                                div.style.backgroundColor = '#fef9c3'; div.style.color = '#ca8a04'; div.style.border = '1px solid #fde047';
+                            } else {
+                                div.style.backgroundColor = '#e0f2fe'; div.style.color = '#0284c7'; div.style.border = '1px solid #bae6fd';
+                            }
+
+                            div.innerHTML = `🔔 ${r.message}`;
+                            remindersContainer.appendChild(div);
+
+                            // Also add to Schedule Table
+                            if (tbody) {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td>${r.vaccine}</td>
+                                    <td>${r.dueDate}</td>
+                                    <td><span class="status-badge" style="background:${div.style.backgroundColor}; color:${div.style.color}; padding: 2px 8px; border-radius: 4px;">${r.status.toUpperCase()}</span></td>
+                                    <td>-</td>
+                                `;
+                                tbody.appendChild(tr);
+                            }
+                        });
                     }
-                });
+                }
 
                 if (document.getElementById('completedCount')) document.getElementById('completedCount').textContent = completed;
                 if (document.getElementById('pendingCount')) document.getElementById('pendingCount').textContent = pending;

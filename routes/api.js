@@ -178,4 +178,78 @@ router.put('/nurse/patient/:id', async (req, res) => {
     }
 });
 
+
+// Helper: Calculate Due Date
+function getDueDate(dob, ageDays) {
+    const date = new Date(dob);
+    date.setDate(date.getDate() + ageDays);
+    return date;
+}
+
+// Patient Reminders Endpoint
+router.get('/patient/:id/reminders', async (req, res) => {
+    try {
+        const userRes = await db.query("SELECT dob FROM users WHERE id = $1", [req.params.id]);
+        if (userRes.rows.length === 0 || !userRes.rows[0].dob) {
+            return res.json({ reminders: [] });
+        }
+
+        const dob = userRes.rows[0].dob;
+        const vaccinesRes = await db.query("SELECT * FROM vaccines");
+        const recordsRes = await db.query("SELECT vaccine_id FROM vaccination_records WHERE patient_id = $1", [req.params.id]);
+
+        const takenVaccineIds = new Set(recordsRes.rows.map(r => r.vaccine_id));
+        const reminders = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        vaccinesRes.rows.forEach(v => {
+            if (takenVaccineIds.has(v.id)) return;
+
+            const dueDate = getDueDate(dob, v.age_required_days);
+            const diffTime = dueDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let status = 'upcoming';
+            let message = `Upcoming: ${v.name} due on ${dueDate.toLocaleDateString()}`;
+            let alertLevel = 'info'; // info, warning, danger, success
+
+            if (diffDays < 0) {
+                status = 'overdue';
+                message = `OVERDUE: You missed ${v.name}! Due was ${dueDate.toLocaleDateString()}`;
+                alertLevel = 'danger';
+            } else if (diffDays === 0) {
+                status = 'due';
+                message = `Due Today: Please get ${v.name}`;
+                alertLevel = 'success';
+            } else if (diffDays <= 3) {
+                status = 'urgent';
+                message = `Reminder: ${v.name} due in ${diffDays} days`;
+                alertLevel = 'warning';
+            } else if (diffDays <= 7) {
+                status = 'soon';
+                message = `Upcoming: ${v.name} due in ${diffDays} days`;
+                alertLevel = 'info';
+            } else {
+                return; // Too far in future, don't show in immediate reminders
+            }
+
+            reminders.push({
+                vaccine: v.name,
+                dueDate: dueDate.toISOString().split('T')[0],
+                status,
+                message,
+                alertLevel
+            });
+        });
+
+        // Sort by due date
+        reminders.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+        res.json({ reminders });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

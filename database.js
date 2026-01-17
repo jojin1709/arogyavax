@@ -41,14 +41,82 @@ const initDB = async () => {
                 ON CONFLICT (email) DO NOTHING
             `);
 
-            // Vaccines Table
+            // Vaccines Table (Updated with timing_label)
             await client.query(`CREATE TABLE IF NOT EXISTS vaccines (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
+                timing_label VARCHAR(100),
                 description TEXT,
                 age_required_days INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(name, timing_label)
             )`);
+
+            // Seed Vaccines
+            const vaccines = [
+                // Birth
+                { name: 'BCG', timing: 'At Birth', days: 0 },
+                { name: 'OPV 0', timing: 'At Birth', days: 0 },
+                { name: 'Hepatitis B 1', timing: 'At Birth', days: 0 },
+
+                // 6 Weeks
+                { name: 'DTwP 1', timing: '6 Weeks', days: 42 },
+                { name: 'IPV 1', timing: '6 Weeks', days: 42 },
+                { name: 'Hepatitis B 2', timing: '6 Weeks', days: 42 },
+                { name: 'Hib 1', timing: '6 Weeks', days: 42 },
+                { name: 'Rotavirus 1', timing: '6 Weeks', days: 42 },
+                { name: 'PCV 1', timing: '6 Weeks', days: 42 },
+
+                // 10 Weeks
+                { name: 'DTwP 2', timing: '10 Weeks', days: 70 },
+                { name: 'IPV 2', timing: '10 Weeks', days: 70 },
+                { name: 'Hib 2', timing: '10 Weeks', days: 70 },
+                { name: 'Rotavirus 2', timing: '10 Weeks', days: 70 },
+                { name: 'PCV 2', timing: '10 Weeks', days: 70 },
+
+                // 14 Weeks
+                { name: 'DTwP 3', timing: '14 Weeks', days: 98 },
+                { name: 'IPV 3', timing: '14 Weeks', days: 98 },
+                { name: 'Hib 3', timing: '14 Weeks', days: 98 },
+                { name: 'Rotavirus 3', timing: '14 Weeks', days: 98 },
+                { name: 'PCV 3', timing: '14 Weeks', days: 98 },
+
+                // 6 Months
+                { name: 'OPV 1', timing: '6 Months', days: 180 },
+                { name: 'Hepatitis B 3', timing: '6 Months', days: 180 },
+
+                // 9 Months
+                { name: 'MMR 1', timing: '9 Months', days: 270 },
+
+                // 9-12 Months
+                { name: 'Typhoid Conjugate', timing: '9-12 Months', days: 270 },
+
+                // 15 Months
+                { name: 'MMR 2', timing: '15 Months', days: 450 },
+
+                // 16-18 Months
+                { name: 'DTwP Booster 1', timing: '16-18 Months', days: 480 },
+                { name: 'IPV B1', timing: '16-18 Months', days: 480 },
+                { name: 'Hib Booster', timing: '16-18 Months', days: 480 },
+
+                // 2 Years (Approx 24 Months - Catch up or additional if needed, usually covered above)
+                // 4-6 Years
+                { name: 'DTwP Booster 2', timing: '4-6 Years', days: 1460 },
+                { name: 'OPV 3', timing: '4-6 Years', days: 1460 },
+                { name: 'Varicella', timing: '4-6 Years', days: 1460 },
+
+                // 10-12 Years
+                { name: 'Tdap/Td', timing: '10-12 Years', days: 3650 },
+                { name: 'HPV', timing: '10-12 Years', days: 3650 }
+            ];
+
+            for (const v of vaccines) {
+                await client.query(`
+                    INSERT INTO vaccines (name, timing_label, age_required_days) 
+                    VALUES ($1, $2, $3) 
+                    ON CONFLICT (name, timing_label) DO NOTHING
+                `, [v.name, v.timing, v.days]);
+            }
 
             // Hospitals Table (user_id is integer because serial creates integer IDs)
             await client.query(`CREATE TABLE IF NOT EXISTS hospitals (
