@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Pool } = require('pg');
+const os = require('os');
 const dns = require('dns');
 const { URL } = require('url');
 
@@ -13,39 +14,45 @@ async function getPool() {
 
     initPromise = (async () => {
         const dbUrl = process.env.DATABASE_URL;
+        if (!dbUrl) {
+            console.error("CRITICAL: DATABASE_URL is missing!");
+            throw new Error("DATABASE_URL is not set.");
+        }
+
         let connectionString = dbUrl;
+        let sslConfig = { rejectUnauthorized: false };
 
-        let hostname;
+        // WORKAROUND: Node 17+ on Windows prefers IPv6, causing timeout with Neon/Postgres.
+        // We force IPv4 resolution ONLY on Windows.
+        // On Vercel (Linux), we use standard connection to avoid SSL host mismatch errors.
+        if (os.platform() === 'win32') {
+            try {
+                const parsed = new URL(dbUrl);
+                const hostname = parsed.hostname;
 
-        try {
-            const parsed = new URL(dbUrl);
-            hostname = parsed.hostname;
-
-            console.log(`Resolving database host: ${hostname}...`);
-            const addresses = await new Promise((resolve, reject) => {
-                dns.resolve4(hostname, (err, addrs) => {
-                    if (err) resolve([]);
-                    else resolve(addrs);
+                console.log(`[Windows] Resolving hostname for IPv4 fix: ${hostname}`);
+                const addresses = await new Promise((resolve, reject) => {
+                    dns.resolve4(hostname, (err, addrs) => {
+                        if (err) resolve([]);
+                        else resolve(addrs);
+                    });
                 });
-            });
 
-            if (addresses && addresses.length > 0) {
-                console.log(`Resolved to IPv4: ${addresses[0]}`);
-                // Replace hostname with IP in the connection string
-                connectionString = dbUrl.replace(hostname, addresses[0]);
-            } else {
-                console.warn("IPv4 resolution failed or empty. Falling back to original URL.");
+                if (addresses && addresses.length > 0) {
+                    console.log(`[Windows] Resolved to IP: ${addresses[0]}`);
+                    connectionString = dbUrl.replace(hostname, addresses[0]);
+                    sslConfig.servername = hostname; // Essential for SNI with IP connection
+                }
+            } catch (e) {
+                console.warn("[Windows] DNS Resolution failed, falling back to standard connection:", e.message);
             }
-        } catch (e) {
-            console.error("DNS Resolution Error:", e);
+        } else {
+            console.log(`[Platform: ${os.platform()}] Using standard database connection.`);
         }
 
         pool = new Pool({
             connectionString: connectionString,
-            ssl: {
-                rejectUnauthorized: false,
-                servername: hostname // Fix for ERR_TLS_CERT_ALTNAME_INVALID when using IP
-            }
+            ssl: sslConfig
         });
 
         pool.on('connect', () => {
