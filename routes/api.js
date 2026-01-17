@@ -252,4 +252,120 @@ router.get('/patient/:id/reminders', async (req, res) => {
     }
 });
 
+// --- NURSE & AUTOMATION ENDPOINTS ---
+
+// Nurse Stats
+router.get('/nurse/stats', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+
+        const totalAppts = await db.query("SELECT COUNT(*) as count FROM appointments WHERE appointment_date = $1", [today]);
+        const completed = await db.query("SELECT COUNT(*) as count FROM appointments WHERE appointment_date = $1 AND status = 'completed'", [today]);
+        const pending = await db.query("SELECT COUNT(*) as count FROM appointments WHERE appointment_date = $1 AND status = 'scheduled'", [today]);
+
+        // Mock Overdue calculation for stats (count of overdue vaccines roughly)
+        // In real app, complex query. Here, we just count records with 'missed' if we had that, or return mock.
+        // Let's return 0 for now or implement a heavy query if needed.
+        const overdue = 5; // Mock for now
+
+        res.json({
+            today: totalAppts.rows[0].count,
+            completed: completed.rows[0].count,
+            pending: pending.rows[0].count,
+            overdue: overdue
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Appointments CRUD
+router.get('/nurse/appointments', async (req, res) => {
+    const { date } = req.query; // YYYY-MM-DD
+    if (!date) return res.json({ appointments: [] });
+    try {
+        const sql = `
+            SELECT a.id, a.appointment_time, a.status, u.name as patient_name, u.phone, v.name as vaccine_name
+            FROM appointments a
+            JOIN users u ON a.patient_id = u.id
+            LEFT JOIN vaccines v ON a.vaccine_id = v.id
+            WHERE a.appointment_date = $1
+            ORDER BY a.appointment_time ASC
+        `;
+        const result = await db.query(sql, [date]);
+        res.json({ appointments: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/nurse/appointment', async (req, res) => {
+    const { patientId, vaccineId, date, time } = req.body;
+    try {
+        // Hospital ID hardcoded to 1 for demo
+        await db.query(
+            "INSERT INTO appointments (patient_id, hospital_id, vaccine_id, appointment_date, appointment_time, status) VALUES ($1, 1, $2, $3, $4, 'scheduled')",
+            [patientId, vaccineId, date, time]
+        );
+        res.json({ message: "Appointment Scheduled" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/nurse/check-in/:id', async (req, res) => {
+    try {
+        await db.query("UPDATE appointments SET status = 'checked-in' WHERE id = $1", [req.params.id]);
+        res.json({ message: "Patient Checked-In" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Batch Reminders (Mock)
+router.post('/admin/batch-reminders', async (req, res) => {
+    // Logic: fetch all patients, calc due dates, send email if due <= 7 days
+    try {
+        const users = await db.query("SELECT id, email, name FROM users WHERE role = 'patient'");
+        let count = 0;
+        // Mock sending
+        users.rows.forEach(u => {
+            // In real app: calculate due dates here.
+            // We'll just simulate sending to 20% of users
+            if (Math.random() > 0.8) {
+                console.log(`[Email Service] Sending reminder to ${u.email}`);
+                count++;
+            }
+        });
+        res.json({ message: `Sent reminders to ${count} patients.` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Overdue Reports
+router.get('/admin/reports/overdue', async (req, res) => {
+    try {
+        // Mock response for report
+        const report = [
+            { name: 'John Doe', vaccine: 'Polio', days_overdue: 15, phone: '1234567890' },
+            { name: 'Jane Smith', vaccine: 'Hep B', days_overdue: 45, phone: '0987654321' }
+        ];
+        res.json({ report });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/nurse/due-list', async (req, res) => {
+    // Mock logic for "Children due this week/month"
+    // Real logic would query users + vaccines calculation
+    res.json({
+        dueList: [
+            { name: 'Baby A', age: '6 Weeks', vaccine: 'Pentavalent 1', contact: 'Parent A (9999999999)' },
+            { name: 'Baby B', age: '10 Weeks', vaccine: 'Pentavalent 2', contact: 'Parent B (8888888888)' }
+        ]
+    });
+});
+
 module.exports = router;

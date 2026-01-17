@@ -145,6 +145,18 @@ const initDB = async () => {
                 quantity INTEGER DEFAULT 0
             )`);
 
+            // Appointments Table
+            await client.query(`CREATE TABLE IF NOT EXISTS appointments (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER NOT NULL REFERENCES users(id),
+                hospital_id INTEGER REFERENCES hospitals(id),
+                vaccine_id INTEGER REFERENCES vaccines(id),
+                appointment_date DATE NOT NULL,
+                appointment_time TIME,
+                status VARCHAR(20) CHECK(status IN ('scheduled', 'checked-in', 'completed', 'cancelled')) DEFAULT 'scheduled',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`);
+
             await client.query('COMMIT');
         } catch (e) {
             await client.query('ROLLBACK');
