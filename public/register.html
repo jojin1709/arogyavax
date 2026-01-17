@@ -28,10 +28,17 @@
 
     <div class="auth-container">
         <h2>Create an Account</h2>
+        <div class="role-switcher" style="display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center;">
+            <button type="button" class="btn active-role" id="rolePatientBtn"
+                onclick="setRole('patient')">Patient</button>
+            <button type="button" class="btn-outline" id="roleNurseBtn" onclick="setRole('nurse')">Nurse</button>
+        </div>
+
         <form id="registerForm">
+            <input type="hidden" id="role" name="role" value="patient">
             <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" required>
+                <label>Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter Full Name" required>
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
@@ -45,7 +52,6 @@
                 <label for="phone">Phone Number</label>
                 <input type="tel" id="phone" name="phone">
             </div>
-            <input type="hidden" name="role" value="patient">
             <div class="form-group">
                 <label for="aadhaar">Aadhaar Number (Optional)</label>
                 <input type="text" id="aadhaar" name="aadhaar">
@@ -96,6 +102,21 @@
     </div>
 
     <script src="js/main.js"></script>
+    <script>
+        function setRole(role) {
+            document.getElementById('role').value = role;
+            const pBtn = document.getElementById('rolePatientBtn');
+            const nBtn = document.getElementById('roleNurseBtn');
+
+            if (role === 'patient') {
+                pBtn.className = 'btn active-role';
+                nBtn.className = 'btn-outline';
+            } else {
+                nBtn.className = 'btn active-role';
+                pBtn.className = 'btn-outline';
+            }
+        }
+    </script>
     <script>
         let serverOtp = null;
         let pendingFormData = null;

@@ -17,11 +17,17 @@
             </div>
             <div class="nav-links">
                 <button id="theme-toggle" class="btn-outline" style="border:none; font-size: 1.2rem;">🌙</button>
-                <a href="index.html">Home</a>
-                <a href="centers.html">Find Centers</a>
-                <a href="about.html">About</a>
-                <a href="login.html" class="btn">Login</a>
-                <a href="register.html" class="btn">Register</a>
+                <select id="langSelect"
+                    style="padding: 5px; border-radius: 4px; border: 1px solid var(--primary); margin-right: 10px; background: var(--bg-card); color: var(--text-main);">
+                    <option value="en">English</option>
+                    <option value="ml">Malayalam (മലയാളം)</option>
+                    <option value="ta">Tamil (தமிழ்)</option>
+                </select>
+                <a href="index.html" data-i18n="nav_home">Home</a>
+                <a href="centers.html" data-i18n="nav_centers">Find Centers</a>
+                <a href="about.html" data-i18n="nav_about">About</a>
+                <a href="login.html" class="btn" data-i18n="nav_login">Login</a>
+                <a href="register.html" class="btn" data-i18n="nav_register">Register</a>
             </div>
         </nav>
     </header>
@@ -29,12 +35,12 @@
     <section class="hero">
         <div class="hero-content">
             <div class="hero-text">
-                <h1>Smart Immunization for a Healthier Future</h1>
-                <p>Digitally manage vaccination records, schedules, and reminders for your family. A secure platform for
-                    parents, hospitals, and administrators.</p>
+                <h1 data-i18n="hero_title">Smart Immunization for a Healthier Future</h1>
+                <p data-i18n="hero_desc">Digitally manage vaccination records, schedules, and reminders for your family.
+                    A secure platform for parents, hospitals, and administrators.</p>
                 <div class="hero-buttons">
-                    <a href="register.html" class="btn">Get Started</a>
-                    <a href="#features" class="btn-outline">Learn More</a>
+                    <a href="register.html" class="btn" data-i18n="btn_get_started">Get Started</a>
+                    <a href="#learn-section" class="btn-outline" data-i18n="btn_learn_more">Learn More</a>
                 </div>
             </div>
             <div class="hero-image-container">
@@ -69,6 +75,39 @@
                 <div class="feature-icon">🏥</div>
                 <h3>Hospital Network</h3>
                 <p>Connect with verified hospitals and clinics for safe administration.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Learn About Vaccines Section -->
+    <section id="learn-section" style="padding: 4rem 2rem; background: var(--bg-card);">
+        <div class="section-title">
+            <h2 data-i18n="learn_title">Learn About Vaccines</h2>
+            <p data-i18n="learn_subtitle">Understand the vaccines that protect your child.</p>
+        </div>
+        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3>OPV (Polio)</h3>
+                <p data-i18n="desc_polio">Oral Polio Vaccine primarily protects against the poliovirus, which can cause
+                    paralysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💉</div>
+                <h3>Covaxin / Covishield</h3>
+                <p data-i18n="desc_covid">Vaccines designed to protect against COVID-19 and its severe complications.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>BCG</h3>
+                <p data-i18n="desc_bcg">Bacille Calmette-Guerin vaccine is primarily used against tuberculosis (TB).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🩸</div>
+                <h3>Hepatitis B</h3>
+                <p data-i18n="desc_hepb">Recommended for all infants at birth to protect against Hepatitis B virus
+                    infection.</p>
             </div>
         </div>
     </section>

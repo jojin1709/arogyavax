@@ -70,6 +70,16 @@ router.post('/patient/book', async (req, res) => {
     }
 });
 
+// Admin: Get All Users
+router.get('/admin/users', async (req, res) => {
+    try {
+        const result = await db.query("SELECT id, name, email, role, created_at FROM users ORDER BY id DESC");
+        res.json({ users: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Vaccines List
 router.get('/vaccines', async (req, res) => {
     try {

@@ -40,6 +40,9 @@
             <a href="#" class="sidebar-link">
                 📢 CMS / Announcements
             </a>
+            <a href="#" class="sidebar-link">
+                👥 Manage Users
+            </a>
             <a href="#" class="sidebar-link">📑 Reports</a>
         </aside>
 
@@ -167,6 +170,29 @@
                 </div>
                 <button type="submit" class="btn">Post Announcement</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Manage Users Section -->
+    <div id="users-section" style="display: none; margin-top: 2rem;">
+        <h3>Manage Users & Roles</h3>
+        <p>View registered users and their roles.</p>
+        <div class="table-container" style="margin-top: 1rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="4">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <!-- Reminders Feature -->
@@ -479,6 +505,38 @@
             e.target.reset();
         });
 
+        // --- USER MANAGEMENT LOGIC ---
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/admin/users');
+                const data = await res.json();
+                tbody.innerHTML = '';
+                if (!data.users || data.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
+                    return;
+                }
+                data.users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    // Badge for role
+                    let roleBadge = `<span style="padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; background: #eee; color: #333;">${u.role}</span>`;
+                    if (u.role === 'admin') roleBadge = `<span style="padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; background: var(--primary); color: white;">Admin</span>`;
+                    if (u.role === 'nurse') roleBadge = `<span style="padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; background: #3B82F6; color: white;">Nurse</span>`;
+
+                    tr.innerHTML = `
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${roleBadge}</td>
+                        <td>
+                            <button class="btn-outline" style="padding: 2px 8px;" onclick="alert('Edit functionality coming soon')">Edit</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { console.error("Error loading users", e); tbody.innerHTML = '<tr><td colspan="4">Error.</td></tr>'; }
+        }
+
         // --- NAVIGATION LOGIC ---
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -495,6 +553,7 @@
                 document.getElementById('cms-section').style.display = 'none';
                 document.getElementById('reports-section').style.display = 'none';
                 document.getElementById('stock-section').style.display = 'none';
+                document.getElementById('users-section').style.display = 'none'; // New: Hide Users section
 
                 // Show target
                 const text = e.target.textContent.trim();
@@ -503,7 +562,10 @@
                     document.getElementById('hospitals-section').style.display = 'block';
                     loadHospitals();
                 }
-                else if (text.includes('Slots')) document.getElementById('slots-section').style.display = 'block';
+                else if (text.includes('Slots')) {
+                    document.getElementById('slots-section').style.display = 'block';
+                    loadStockOptions(); // Assuming this is for slots management
+                }
                 else if (text.includes('CMS')) document.getElementById('cms-section').style.display = 'block';
                 else if (text.includes('Reports')) {
                     document.getElementById('reports-section').style.display = 'block';
@@ -512,6 +574,10 @@
                 else if (text.includes('Stock')) {
                     document.getElementById('stock-section').style.display = 'block';
                     loadStock();
+                }
+                else if (text.includes('Users')) { // New: Handle Users section
+                    document.getElementById('users-section').style.display = 'block';
+                    loadUsers();
                 }
             });
         });

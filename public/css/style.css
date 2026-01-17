@@ -422,7 +422,7 @@ body.show-chatbot .chatbot {
 /* Mobile Responsiveness Updates */
 @media (max-width: 768px) {
     .hero-content {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         text-align: center;
     }
 
