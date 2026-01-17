@@ -283,7 +283,7 @@ nav {
     border-radius: 50%;
     background: var(--primary);
     transition: all 0.2s ease;
-    z-index: 1000;
+    z-index: 10001;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -308,7 +308,7 @@ nav {
     box-shadow: 0 0 128px 0 rgba(0, 0, 0, 0.1),
         0 32px 64px -48px rgba(0, 0, 0, 0.5);
     transition: all 0.1s ease;
-    z-index: 999;
+    z-index: 10001;
 }
 
 body.show-chatbot .chatbot {
