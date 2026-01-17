@@ -391,6 +391,27 @@
             });
         }
 
+        async function issueCertificate(recordId) {
+            if (!confirm('Issue certificate for this vaccination?')) return;
+            try {
+                const res = await fetch('/api/nurse/issue-certificate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recordId })
+                });
+                if (res.ok) {
+                    alert('Certificate Issued! ✅');
+                    // Reload details
+                    const id = document.getElementById('detailsId').value; // Hidden input we need to add or grab from context
+                    // For simplicity, just reload the page or re-search? 
+                    // Let's re-call loadPatientDetails if we have the ID.
+                    // Actually, let's just grab the current search ID if possible.
+                    // A better way: The edit form has the ID.
+                    loadPatientDetails(document.getElementById('editId').value);
+                }
+            } catch (err) { console.error(err); }
+        }
+
         async function editPatient(id) {
             const res = await fetch(`/api/nurse/patient/${id}`);
             if (!res.ok) return alert('Error fetching patient details');

@@ -40,6 +40,12 @@
                 <!-- Reminders Section -->
                 <div id="reminders-container" style="margin-bottom: 2rem;"></div>
 
+                <div id="certificates-container"
+                    style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 2rem; display: none;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem;">📜 My Immunization Certificates</h3>
+                    <ul id="certList" style="list-style: none;"></ul>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-info">
@@ -415,6 +421,53 @@
                 console.error(err);
                 showToast('Failed to load data', 'error');
             }
+
+            // 4. Load Certificates
+            try {
+                // Let's use the new specific endpoint for certificates
+                const certRes = await fetch(`/api/patient/${user.id}/certificates`);
+                const certData = await certRes.json();
+
+                const certContainer = document.getElementById('certificates-container');
+                const certList = document.getElementById('certList');
+                certList.innerHTML = '';
+
+                if (certData.certificates && certData.certificates.length > 0) {
+                    certContainer.style.display = 'block';
+                    certData.certificates.forEach(c => {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;';
+                        li.innerHTML = `
+                            <div>
+                                <strong>${c.vaccine_name}</strong> <br>
+                                <span style="font-size: 0.85rem; color: var(--gray);">Administered on ${new Date(c.date_administered).toLocaleDateString()} at ${c.hospital_name}</span>
+                            </div>
+                            <button class="btn-outline" onclick="downloadCert('${c.vaccine_name}', '${c.date_administered}', '${c.hospital_name}')">⬇ Download</button>
+                        `;
+                        certList.appendChild(li);
+                    });
+                }
+            } catch (err) { console.error("Cert Load Error", err); }
+        }
+
+        function downloadCert(vaccine, date, hospital) {
+            // Simple Alert/Mock download for now
+            const certText = `
+                AROJYAVAX IMMUNIZATION CERTIFICATE
+                ----------------------------------
+                Patient: ${user.name}
+                Vaccine: ${vaccine}
+                Date: ${new Date(date).toLocaleDateString()}
+                Hospital: ${hospital}
+                
+                This is a computer generated certificate.
+            `;
+            const blob = new Blob([certText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${vaccine}_Certificate.txt`;
+            a.click();
         }
 
         loadData();

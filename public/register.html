@@ -54,31 +54,38 @@
 
     <!-- OTP Modal -->
     <div id="otpModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div
-            style="background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="margin-bottom: 1rem; color: var(--primary);">Verify Your Email</h3>
-            <p style="margin-bottom: 1.5rem; color: #666;">We have sent a verification code to your email.</p>
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div class="modal-content">
+            <div style="margin-bottom: 1rem; font-size: 3rem;">🔐</div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--dark); font-size: 1.5rem;">Verify Email</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--gray); font-size: 0.95rem;">
+                Enter the 4-digit code sent to <br> <span id="otpEmailDisplay"
+                    style="font-weight: 600; color: var(--primary);"></span>
+            </p>
 
             <!-- Hidden OTP by default -->
             <div
-                style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed #0ea5e9;">
-                <p id="hiddenOtpMsg" style="font-size: 0.9rem; color: #555; margin-bottom: 0.5rem;">Check your
-                    email/console for code</p>
+                style="background: #ECFDF5; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed var(--primary);">
+                <p id="hiddenOtpMsg"
+                    style="font-size: 0.85rem; color: var(--primary-hover); margin-bottom: 0.5rem; font-weight: 500;">
+                    Development Mode:
+                </p>
                 <button type="button" onclick="revealOtp()"
-                    style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">
-                    👁️ Show Simulated OTP
+                    style="background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">
+                    👁️ Reveal Simulated OTP
                 </button>
                 <p id="simOtpDisplay"
-                    style="display: none; font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; letter-spacing: 2px;">
+                    style="display: none; font-size: 1.5rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem; letter-spacing: 5px;">
                 </p>
             </div>
 
-            <input type="text" id="otpInput" placeholder="Enter 4-digit Code" maxlength="4"
-                style="width: 100%; padding: 0.8rem; font-size: 1.2rem; text-align: center; letter-spacing: 0.5rem; margin-bottom: 1.5rem; border: 2px solid #ddd; border-radius: 6px;">
+            <input type="text" id="otpInput" class="otp-input" placeholder="••••" maxlength="4"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 
-            <button onclick="verifyOtp()" class="btn" style="width: 100%; margin-bottom: 0.8rem;">Verify &
-                Register</button>
+            <button onclick="verifyOtp()" id="verifyBtn" class="btn"
+                style="width: 100%; margin-bottom: 0.8rem; padding: 0.8rem;">
+                Verify & Register
+            </button>
             <button onclick="closeOtpModal()" class="btn-outline" style="width: 100%; border: none;">Cancel</button>
         </div>
     </div>
@@ -90,11 +97,20 @@
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+
+            // Loading State
+            btn.textContent = 'Sending OTP...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+
             pendingFormData = new FormData(e.target);
             const email = document.getElementById('email').value;
 
             if (!email) {
                 alert('Please enter email to verify.');
+                resetBtn(btn, originalText);
                 return;
             }
 
@@ -112,17 +128,27 @@
                     // Reset UI
                     document.getElementById('simOtpDisplay').style.display = 'none';
                     document.getElementById('simOtpDisplay').textContent = serverOtp;
+                    document.getElementById('otpEmailDisplay').innerText = email;
+
                     document.getElementById('otpModal').style.display = 'flex';
                     document.getElementById('otpInput').value = '';
-                    document.getElementById('otpInput').focus();
+                    setTimeout(() => document.getElementById('otpInput').focus(), 100);
                 } else {
                     alert('Error sending OTP: ' + data.error);
                 }
             } catch (err) {
                 console.error(err);
                 alert('Connection Error');
+            } finally {
+                resetBtn(btn, originalText);
             }
         });
+
+        function resetBtn(btn, text) {
+            btn.textContent = text;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
 
         function revealOtp() {
             document.getElementById('simOtpDisplay').style.display = 'block';

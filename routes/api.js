@@ -168,7 +168,7 @@ router.get('/nurse/patient/:id', async (req, res) => {
         if (userRes.rows.length === 0) return res.status(404).json({ error: "Patient not found" });
 
         const historyRes = await db.query(`
-            SELECT r.id, r.date_administered, v.name as vaccine_name, h.name as hospital_name
+            SELECT r.id, r.date_administered, r.certificate_issued, v.name as vaccine_name, h.name as hospital_name
             FROM vaccination_records r
             LEFT JOIN vaccines v ON r.vaccine_id = v.id
             LEFT JOIN hospitals h ON r.hospital_id = h.id
@@ -387,6 +387,34 @@ router.get('/nurse/due-list', async (req, res) => {
             { name: 'Baby B', age: '10 Weeks', vaccine: 'Pentavalent 2', contact: 'Parent B (8888888888)' }
         ]
     });
+});
+
+// Issue Certificate (Nurse)
+router.post('/nurse/issue-certificate', async (req, res) => {
+    const { recordId } = req.body;
+    try {
+        await db.query("UPDATE vaccination_records SET certificate_issued = TRUE WHERE id = $1", [recordId]);
+        res.json({ message: "Certificate Issued Successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Certificates (Patient)
+router.get('/patient/:id/certificates', async (req, res) => {
+    try {
+        const sql = `
+            SELECT r.id, r.date_administered, v.name as vaccine_name, h.name as hospital_name
+            FROM vaccination_records r
+            JOIN vaccines v ON r.vaccine_id = v.id
+            JOIN hospitals h ON r.hospital_id = h.id
+            WHERE r.patient_id = $1 AND r.certificate_issued = TRUE
+        `;
+        const result = await db.query(sql, [req.params.id]);
+        res.json({ certificates: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 module.exports = router;

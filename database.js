@@ -130,11 +130,15 @@ const initDB = async () => {
             // Vaccination Records
             await client.query(`CREATE TABLE IF NOT EXISTS vaccination_records (
                 id SERIAL PRIMARY KEY,
-                patient_id INTEGER NOT NULL REFERENCES users(id),
-                vaccine_id INTEGER NOT NULL REFERENCES vaccines(id),
+                patient_id INT,
+                vaccine_id INT,
                 date_administered DATE,
-                hospital_id INTEGER REFERENCES hospitals(id),
-                status VARCHAR(20) CHECK(status IN ('pending', 'administered', 'missed')) DEFAULT 'pending'
+                hospital_id INT,
+                status VARCHAR(50) CHECK(status IN ('pending', 'administered', 'missed')) DEFAULT 'pending',
+                certificate_issued BOOLEAN DEFAULT FALSE,
+                FOREIGN KEY(patient_id) REFERENCES users(id),
+                FOREIGN KEY(vaccine_id) REFERENCES vaccines(id),
+                FOREIGN KEY(hospital_id) REFERENCES hospitals(id)
             )`);
 
             // Stock Table
