@@ -706,7 +706,7 @@
         async function approveNurse(id) {
             if (!confirm("Approve this nurse?")) return;
             try {
-                const res = await fetch(\`/api/admin/approve-nurse/\${id}\`, { method: 'POST' });
+                const res = await fetch(`/api/admin/approve-nurse/${id}`, { method: 'POST' });
                 const data = await res.json();
                 alert(data.message);
                 loadNurseRequests();
@@ -714,9 +714,9 @@
         }
 
         async function rejectNurse(id) {
-            if(!confirm("Reject and delete this request?")) return;
+            if (!confirm("Reject and delete this request?")) return;
             try {
-                const res = await fetch(\`/api/admin/reject-nurse/\${id}\`, { method: 'POST' });
+                const res = await fetch(`/api/admin/reject-nurse/${id}`, { method: 'POST' });
                 const data = await res.json();
                 alert(data.message);
                 loadNurseRequests();
@@ -742,12 +742,12 @@
             try {
                 const res = await fetch('/api/admin/recent-activity');
                 const data = await res.json();
-                
+
                 // 1. Registrations
                 const regContainer = document.getElementById('recentRegistrations');
-                if(regContainer) {
+                if (regContainer) {
                     regContainer.innerHTML = '';
-                    if(!data.registrations || data.registrations.length === 0) {
+                    if (!data.registrations || data.registrations.length === 0) {
                         regContainer.innerHTML = '<p>No new registrations.</p>';
                     } else {
                         data.registrations.forEach(user => {
@@ -755,7 +755,7 @@
                             div.className = 'activity-item'; // Ensure this class exists in CSS or use inline
                             div.style.padding = '10px';
                             div.style.borderBottom = '1px solid #eee';
-                            div.innerHTML = `< strong > ${ user.name }</strong > <span style="font-size:0.8rem; color:gray;">(${user.email})</span><br><small>Joined: ${new Date(user.created_at).toLocaleDateString()}</small>`;
+                            div.innerHTML = `<strong>${user.name}</strong> <span style="font-size:0.8rem; color:gray;">(${user.email})</span><br><small>Joined: ${new Date(user.created_at).toLocaleDateString()}</small>`;
                             regContainer.appendChild(div);
                         });
                     }
@@ -763,9 +763,9 @@
 
                 // 2. Bookings
                 const bookContainer = document.getElementById('recentBookings');
-                if(bookContainer) {
+                if (bookContainer) {
                     bookContainer.innerHTML = '';
-                    if(!data.bookings || data.bookings.length === 0) {
+                    if (!data.bookings || data.bookings.length === 0) {
                         bookContainer.innerHTML = '<p>No recent bookings.</p>';
                     } else {
                         data.bookings.forEach(b => {
@@ -782,8 +782,8 @@
                 console.error("Recent Activity Load Error", err);
                 const reg = document.getElementById('recentRegistrations');
                 const book = document.getElementById('recentBookings');
-                if(reg) reg.innerHTML = '<p style="color:red">Error loading data</p>';
-                if(book) book.innerHTML = '<p style="color:red">Error loading data</p>';
+                if (reg) reg.innerHTML = '<p style="color:red">Error loading data</p>';
+                if (book) book.innerHTML = '<p style="color:red">Error loading data</p>';
             }
         }
 
