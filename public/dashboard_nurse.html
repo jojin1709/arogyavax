@@ -16,9 +16,17 @@
                 <a href="index.html">🩺 ArogyaVax Nurse</a>
             </div>
             <div class="nav-links">
+                <a href="index.html"
+                    style="margin-right: 1rem; text-decoration: none; color: var(--text-main);">Home</a>
+                <div style="display:flex; align-items:center; gap:10px; margin-right:1rem;">
+                    <img id="headerAvatar" src="images/default-avatar.png"
+                        style="width:32px; height:32px; border-radius:50%; object-fit:cover; border: 2px solid var(--white);"
+                        onerror="this.src='https://ui-avatars.com/api/?name=Nurse'">
+                    <span id="userName" style="font-weight: 600;">Nurse</span>
+                </div>
                 <button id="theme-toggle" class="btn-outline"
                     style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
-                <button onclick="logout()" class="btn-outline">Logout</button>
+                <button onclick="logout()" class="btn">Logout</button>
             </div>
         </nav>
     </header>
@@ -30,6 +38,7 @@
             <a href="#" class="sidebar-link" onclick="showSection('administerSection')">💉 Administer</a>
             <a href="#" class="sidebar-link" onclick="showSection('managePatientSection')">👥 Patients</a>
             <a href="#" class="sidebar-link" onclick="showSection('automationSection')">🤖 Automation</a>
+            <a href="#" class="sidebar-link" onclick="showSection('settingsSection')">⚙️ Settings</a>
         </aside>
 
         <main class="main-content">
@@ -190,6 +199,38 @@
                         </thead>
                         <tbody id="dueListBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- SETTINGS SECTION -->
+            <div id="settingsSection" class="section-content" style="display:none;">
+                <h2>Profile Settings</h2>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form id="profileForm">
+                        <div style="text-align:center; margin-bottom:1.5rem;">
+                            <img id="profilePreview" src="images/default-avatar.png"
+                                style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 3px solid var(--primary); margin-bottom:10px;"
+                                onerror="this.src='https://ui-avatars.com/api/?name=Nurse'">
+                            <br>
+                            <label for="profileUpload" class="btn-outline" style="cursor:pointer; font-size:0.9rem;">📷
+                                Upload Photo</label>
+                            <input type="file" id="profileUpload" accept="image/*" style="display:none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="updateName" placeholder="Update Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="updatePhone" placeholder="Update Phone">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password (Optional)</label>
+                            <input type="password" id="updatePassword" placeholder="New Password">
+                        </div>
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
                 </div>
             </div>
 
@@ -463,6 +504,71 @@
             const win = window.open('', '', 'height=700,width=700');
             win.document.write('<html><body style="text-align:center;font-family:sans-serif;">' + content + '</body></html>');
             win.document.close(); win.print();
+        }
+
+        // Profile Logic for Nurse
+        // Pre-fill
+        if (document.getElementById('userName')) document.getElementById('userName').textContent = user.name;
+        if (document.getElementById('updateName')) document.getElementById('updateName').value = user.name;
+        if (document.getElementById('updatePhone')) document.getElementById('updatePhone').value = user.phone || "";
+
+        let base64Image = "";
+        // Init Profile Pic from User Data
+        const initAvatar = () => {
+            if (user.profile_pic) {
+                if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = user.profile_pic;
+                if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = user.profile_pic;
+            } else {
+                const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+                if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = fallback;
+                if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = fallback;
+            }
+        };
+        initAvatar();
+
+        // Handle File Selection
+        if (document.getElementById('profileUpload')) {
+            document.getElementById('profileUpload').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        base64Image = evt.target.result;
+                        document.getElementById('profilePreview').src = base64Image;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            profileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('updateName').value;
+                const phone = document.getElementById('updatePhone').value;
+                const password = document.getElementById('updatePassword').value;
+                const finalImage = base64Image || user.profile_pic || "";
+
+                try {
+                    const res = await fetch('/api/auth/update-profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: user.id, name, phone, password, profile_pic: finalImage })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        alert('Profile updated successfully!');
+                        window.location.reload();
+                    } else {
+                        alert(data.error);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error updating profile.');
+                }
+            });
         }
 
         // Init Load

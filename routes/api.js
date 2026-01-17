@@ -49,6 +49,61 @@ router.post('/admin/hospital', async (req, res) => {
     }
 });
 
+// Patient Booking Endpoint
+router.post('/patient/book', async (req, res) => {
+    const { patientId, vaccineId, date, hospitalId } = req.body;
+    try {
+        // Validate inputs
+        if (!patientId || !vaccineId || !date || !hospitalId) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Check if already booked for same vaccine? (Optional improvement, skip for now to keep simple)
+
+        const sql = `INSERT INTO appointments (patient_id, vaccine_id, hospital_id, appointment_date, status) 
+                     VALUES ($1, $2, $3, $4, 'scheduled') RETURNING id`;
+
+        await db.query(sql, [patientId, vaccineId, hospitalId, date]);
+        res.json({ message: "Appointment booked successfully!" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Vaccines List
+router.get('/vaccines', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM vaccines ORDER BY name ASC");
+        res.json({ vaccines: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin Recent Activity Endpoint
+router.get('/admin/recent-activity', async (req, res) => {
+    try {
+        // Fetch last 5 registrations
+        const usersRes = await db.query("SELECT name, email, created_at FROM users WHERE role='patient' ORDER BY id DESC LIMIT 5");
+
+        // Fetch last 5 appointments
+        const apptRes = await db.query(`
+            SELECT u.name as patient_name, v.name as vaccine_name, a.appointment_date 
+            FROM appointments a
+            JOIN users u ON a.patient_id = u.id
+            LEFT JOIN vaccines v ON a.vaccine_id = v.id
+            ORDER BY a.id DESC LIMIT 5
+        `);
+
+        res.json({
+            registrations: usersRes.rows,
+            bookings: apptRes.rows
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Admin Stats
 router.get('/admin/stats', async (req, res) => {
     try {

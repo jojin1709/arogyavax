@@ -28,8 +28,14 @@ const initDB = async () => {
                 role VARCHAR(20) CHECK(role IN ('patient', 'admin', 'nurse')) NOT NULL,
                 phone VARCHAR(20),
                 aadhaar VARCHAR(20),
+                profile_pic TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`);
+
+            // Migration for existing tables
+            try {
+                await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic TEXT");
+            } catch (e) { console.log('Migration Note:', e.message); }
 
             // Seed Admin User (admin@admin.com / admin)
             // Hash for 'admin' is $2b$10$YourHashHere... but for simplicity in this script we can insert directly or use valid hash.

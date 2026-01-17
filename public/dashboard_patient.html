@@ -16,10 +16,17 @@
                 <a href="index.html">🩺 ArogyaVax</a>
             </div>
             <div class="nav-links">
-                <span id="userName" style="font-weight: 600;">Patient</span>
+                <a href="index.html"
+                    style="margin-right: 1rem; text-decoration: none; color: var(--text-main);">Home</a>
+                <div style="display:flex; align-items:center; gap:10px; margin-right:1rem;">
+                    <img id="headerAvatar" src="images/default-avatar.png"
+                        style="width:32px; height:32px; border-radius:50%; object-fit:cover; border: 2px solid var(--white);"
+                        onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                    <span id="userName" style="font-weight: 600;">Patient</span>
+                </div>
                 <button id="theme-toggle" class="btn-outline"
                     style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
-                <button onclick="logout()" class="btn-outline">Logout</button>
+                <button onclick="logout()" class="btn">Logout</button>
             </div>
         </nav>
     </header>
@@ -94,22 +101,18 @@
                     <form id="bookingForm">
                         <div class="form-group">
                             <label>Select Vaccine</label>
-                            <select>
-                                <option>OPV (Oral Polio Vaccine)</option>
-                                <option>Hepatitis B</option>
-                                <option>Pentavalent</option>
+                            <select id="bookingVaccine" required>
+                                <option value="" disabled selected>Select a Vaccine</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Preferred Date</label>
-                            <input type="date" required>
+                            <input type="date" id="bookingDate" required>
                         </div>
                         <div class="form-group">
                             <label>Select Hospital</label>
-                            <select>
-                                <option>City General Hospital</option>
-                                <option>Community Health Center</option>
-                                <option>Medicare Clinic</option>
+                            <select id="bookingHospital" required>
+                                <option value="" disabled selected>Select a Hospital</option>
                             </select>
                         </div>
                         <button type="submit" class="btn">Confirm Booking</button>
@@ -155,6 +158,16 @@
                 <br>
                 <div class="auth-container" style="margin: 0; max-width: 600px;">
                     <form id="profileForm">
+                        <div style="text-align:center; margin-bottom:1.5rem;">
+                            <img id="profilePreview" src="images/default-avatar.png"
+                                style="width:100px; height:100px; border-radius:50%; object-fit:cover; border: 3px solid var(--primary); margin-bottom:10px;"
+                                onerror="this.src='https://ui-avatars.com/api/?name=User'">
+                            <br>
+                            <label for="profileUpload" class="btn-outline" style="cursor:pointer; font-size:0.9rem;">📷
+                                Upload Photo</label>
+                            <input type="file" id="profileUpload" accept="image/*" style="display:none;">
+                        </div>
+
                         <div class="form-group">
                             <label>Full Name</label>
                             <input type="text" id="updateName" placeholder="Update Name">
@@ -239,8 +252,107 @@
             });
         });
 
+        // Booking Logic
+        async function loadBookingOptions() {
+            const vaccineSelect = document.getElementById('bookingVaccine');
+            const hospitalSelect = document.getElementById('bookingHospital');
+            if (!vaccineSelect || !hospitalSelect) return;
+
+            try {
+                // Load Vaccines
+                const vRes = await fetch('/api/vaccines');
+                const vData = await vRes.json();
+                if (vData.vaccines) {
+                    vaccineSelect.innerHTML = '<option value="" disabled selected>Select a Vaccine</option>';
+                    vData.vaccines.forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v.id;
+                        opt.textContent = v.name;
+                        vaccineSelect.appendChild(opt);
+                    });
+                }
+
+                // Load Hospitals
+                const hRes = await fetch('/api/admin/hospitals');
+                const hData = await hRes.json();
+                if (hData.hospitals) {
+                    hospitalSelect.innerHTML = '<option value="" disabled selected>Select a Hospital</option>';
+                    hData.hospitals.forEach(h => {
+                        const opt = document.createElement('option');
+                        opt.value = h.id;
+                        opt.textContent = h.name + " (" + h.location + ")";
+                        hospitalSelect.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error("Error loading options", e); }
+        }
+
+        // Call once on load, or lazy load? Load once is fine.
+        loadBookingOptions();
+
+        const bookingForm = document.getElementById('bookingForm');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const vaccineId = document.getElementById('bookingVaccine').value;
+                const hospitalId = document.getElementById('bookingHospital').value;
+                const date = document.getElementById('bookingDate').value;
+
+                try {
+                    const res = await fetch('/api/patient/book', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ patientId: user.id, vaccineId, hospitalId, date })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        alert(data.message);
+                        // Reset form
+                        bookingForm.reset();
+                        // Refresh data (history/schedule)
+                        loadData();
+                        // Switch to history or schedule view?
+                        // document.querySelector('.sidebar-link:contains("Schedule")').click(); // Pseudo-code
+                    } else {
+                        alert("Booking Failed: " + data.error);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Network Error");
+                }
+            });
+        }
+
         // Profile Update Logic
         const profileForm = document.getElementById('profileForm');
+        let base64Image = "";
+
+        // Handle File Selection
+        if (document.getElementById('profileUpload')) {
+            document.getElementById('profileUpload').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        base64Image = evt.target.result;
+                        document.getElementById('profilePreview').src = base64Image;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Init Profile Pic from User Data
+        if (user.profile_pic) {
+            if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = user.profile_pic;
+            if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = user.profile_pic;
+        } else {
+            // Fallback
+            const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+            if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = fallback;
+            if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = fallback;
+        }
+
         if (profileForm) {
             profileForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -248,16 +360,22 @@
                 const phone = document.getElementById('updatePhone').value;
                 const password = document.getElementById('updatePassword').value;
 
+                // Keep existing photo if not changed
+                const finalImage = base64Image || user.profile_pic || "";
+
                 try {
                     const res = await fetch('/api/auth/update-profile', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: user.id, name, phone, password })
+                        body: JSON.stringify({ id: user.id, name, phone, password, profile_pic: finalImage })
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        alert('Profile updated! Please login again.');
-                        logout();
+                        // Update local storage with new data
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        alert('Profile updated successfully!');
+                        // Reload to reflect changes globally
+                        window.location.reload();
                     } else {
                         alert(data.error);
                     }

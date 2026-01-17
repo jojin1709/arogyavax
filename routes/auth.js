@@ -87,4 +87,31 @@ router.post('/send-otp', (req, res) => {
     res.json({ message: 'OTP Sent successfully!', otp: otp });
 });
 
+// Update Profile Route
+router.put('/update-profile', async (req, res) => {
+    const { id, name, phone, password, profile_pic } = req.body;
+
+    try {
+        let sql, params;
+        if (password && password.trim() !== "") {
+            const hash = await bcrypt.hash(password, 10);
+            sql = `UPDATE users SET name=$1, phone=$2, password=$3, profile_pic=$4 WHERE id=$5 RETURNING id, name, email, role, phone, profile_pic`;
+            params = [name, phone, hash, profile_pic, id];
+        } else {
+            sql = `UPDATE users SET name=$1, phone=$2, profile_pic=$3 WHERE id=$4 RETURNING id, name, email, role, phone, profile_pic`;
+            params = [name, phone, profile_pic, id];
+        }
+
+        const result = await db.query(sql, params);
+        if (result.rows.length > 0) {
+            res.json({ message: 'Profile updated successfully', user: result.rows[0] });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database update failed' });
+    }
+});
+
 module.exports = router;
