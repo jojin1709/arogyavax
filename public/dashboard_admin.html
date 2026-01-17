@@ -738,41 +738,64 @@
             }
         }
 
-        loadStats();
-        loadRecentActivity();
-        // Optional: Auto refresh every 30 seconds
-        setInterval(() => {
-            loadStats();
-            loadRecentActivity();
-        }, 30000);
-
         async function loadRecentActivity() {
-            // ... (keep existing implementation) ...
-        }
-
-        async function loadStats() {
             try {
-                const res = await fetch('/api/admin/stats');
-                if (!res.ok) throw new Error('Failed to fetch stats');
+                const res = await fetch('/api/admin/recent-activity');
                 const data = await res.json();
+                
+                // 1. Registrations
+                const regContainer = document.getElementById('recentRegistrations');
+                if(regContainer) {
+                    regContainer.innerHTML = '';
+                    if(!data.registrations || data.registrations.length === 0) {
+                        regContainer.innerHTML = '<p>No new registrations.</p>';
+                    } else {
+                        data.registrations.forEach(user => {
+                            const div = document.createElement('div');
+                            div.className = 'activity-item'; // Ensure this class exists in CSS or use inline
+                            div.style.padding = '10px';
+                            div.style.borderBottom = '1px solid #eee';
+                            div.innerHTML = `< strong > ${ user.name }</strong > <span style="font-size:0.8rem; color:gray;">(${user.email})</span><br><small>Joined: ${new Date(user.created_at).toLocaleDateString()}</small>`;
+                            regContainer.appendChild(div);
+                        });
+                    }
+                }
 
-                document.getElementById('patientCount').innerText = data.patients || 0;
-                document.getElementById('hospitalCount').innerText = data.hospitals || 0;
-                document.getElementById('vaxCount').innerText = data.vaccinations || 0;
+                // 2. Bookings
+                const bookContainer = document.getElementById('recentBookings');
+                if(bookContainer) {
+                    bookContainer.innerHTML = '';
+                    if(!data.bookings || data.bookings.length === 0) {
+                        bookContainer.innerHTML = '<p>No recent bookings.</p>';
+                    } else {
+                        data.bookings.forEach(b => {
+                            const div = document.createElement('div');
+                            div.style.padding = '10px';
+                            div.style.borderBottom = '1px solid #eee';
+                            div.innerHTML = `<strong>${b.patient_name}</strong> - ${b.vaccine_name || 'Vaccine'}<br><small>Date: ${new Date(b.appointment_date).toLocaleDateString()}</small>`;
+                            bookContainer.appendChild(div);
+                        });
+                    }
+                }
+
             } catch (err) {
-                console.error("Stats load error", err);
-                // Optional: show error state in stats cards
+                console.error("Recent Activity Load Error", err);
+                const reg = document.getElementById('recentRegistrations');
+                const book = document.getElementById('recentBookings');
+                if(reg) reg.innerHTML = '<p style="color:red">Error loading data</p>';
+                if(book) book.innerHTML = '<p style="color:red">Error loading data</p>';
             }
         }
 
+        // Initial Load
         loadStats();
         loadRecentActivity();
-        // Optional: Auto refresh every 30 seconds
+
+        // Auto Refresh
         setInterval(() => {
             loadStats();
             loadRecentActivity();
         }, 30000);
-
     </script>
 </body>
 
