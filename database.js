@@ -40,7 +40,10 @@ async function getPool() {
 
         pool = new Pool({
             connectionString: connectionString,
-            ssl: { rejectUnauthorized: false }
+            ssl: {
+                rejectUnauthorized: false,
+                servername: hostname // Fix for ERR_TLS_CERT_ALTNAME_INVALID when using IP
+            }
         });
 
         pool.on('connect', () => {
