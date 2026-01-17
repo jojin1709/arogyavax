@@ -28,6 +28,27 @@ router.get('/user/:id/history', async (req, res) => {
     }
 });
 
+// List Hospitals
+router.get('/admin/hospitals', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM hospitals ORDER BY id DESC");
+        res.json({ hospitals: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Add Hospital
+router.post('/admin/hospital', async (req, res) => {
+    const { name, location } = req.body;
+    try {
+        await db.query("INSERT INTO hospitals (name, location, approved_status) VALUES ($1, $2, 1)", [name, location]);
+        res.json({ message: "Hospital added successfully!" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Admin Stats
 router.get('/admin/stats', async (req, res) => {
     try {

@@ -74,32 +74,23 @@
                 <br>
                 <div class="auth-container" style="margin: 0; max-width: 600px;">
                     <h4>Add New Hospital</h4>
-                    <form onsubmit="event.preventDefault(); alert('Hospital Added!');">
+                    <form id="addHospitalForm">
                         <div class="form-group">
                             <label>Hospital Name</label>
-                            <input type="text" placeholder="Enter Hospital Name" required>
+                            <input type="text" id="newHospitalName" placeholder="Enter Hospital Name" required>
                         </div>
                         <div class="form-group">
                             <label>Location / Pincode</label>
-                            <input type="text" placeholder="Enter Location" required>
+                            <input type="text" id="newHospitalLocation" placeholder="Enter Location" required>
                         </div>
                         <button type="submit" class="btn">Add Hospital</button>
                     </form>
                 </div>
-                <!-- List (Mock) -->
+                <!-- Dynamic List -->
                 <div style="margin-top: 2rem;">
                     <h4>Registered Hospitals</h4>
                     <ul id="hospitalList" style="list-style: none; margin-top: 1rem;">
-                        <li
-                            style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                            <span>City General Hospital (560001)</span>
-                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Edit</button>
-                        </li>
-                        <li
-                            style="padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                            <span>Community Health Center (560004)</span>
-                            <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Edit</button>
-                        </li>
+                        <!-- Loaded via JS -->
                     </ul>
                 </div>
             </div>
@@ -350,6 +341,48 @@
             }
         });
 
+        // --- HOSPITAL LOGIC ---
+        async function loadHospitals() {
+            const list = document.getElementById('hospitalList');
+            list.innerHTML = '<p>Loading...</p>';
+            try {
+                const res = await fetch('/api/admin/hospitals');
+                const data = await res.json();
+                list.innerHTML = '';
+                if (data.hospitals && data.hospitals.length > 0) {
+                    data.hospitals.forEach(h => {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;';
+                        li.innerHTML = `<span>${h.name} (${h.location})</span> <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Active</button>`;
+                        list.appendChild(li);
+                    });
+                } else {
+                    list.innerHTML = '<p>No hospitals found.</p>';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('addHospitalForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('newHospitalName').value;
+            const location = document.getElementById('newHospitalLocation').value;
+
+            try {
+                const res = await fetch('/api/admin/hospital', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, location })
+                });
+                if (res.ok) {
+                    alert('Hospital Added Successfully!');
+                    e.target.reset();
+                    loadHospitals();
+                } else {
+                    alert('Error adding hospital.');
+                }
+            } catch (err) { console.error(err); }
+        });
+
         // --- ANNOUNCEMENT LOGIC ---
         document.getElementById('announcementForm')?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -384,7 +417,10 @@
                 // Show target
                 const text = e.target.textContent.trim();
                 if (text.includes('Overview')) document.getElementById('overview-section').style.display = 'block';
-                else if (text.includes('Hospitals')) document.getElementById('hospitals-section').style.display = 'block';
+                else if (text.includes('Hospitals')) {
+                    document.getElementById('hospitals-section').style.display = 'block';
+                    loadHospitals();
+                }
                 else if (text.includes('Slots')) document.getElementById('slots-section').style.display = 'block';
                 else if (text.includes('CMS')) document.getElementById('cms-section').style.display = 'block';
                 else if (text.includes('Reports')) {
