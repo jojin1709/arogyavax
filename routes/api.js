@@ -196,42 +196,7 @@ router.post('/nurse/issue-certificate', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-try {
-    const sql = `
-            SELECT u.name as patient_name, u.aadhaar, u.admit_id,
-            v.name as vaccine_name, r.date_administered, h.name as hospital_name
-            FROM vaccination_records r
-            JOIN users u ON r.patient_id = u.id
-            JOIN vaccines v ON r.vaccine_id = v.id
-            JOIN hospitals h ON r.hospital_id = h.id
-            WHERE r.id = $1
-            `;
-    const result = await db.query(sql, [req.params.recordId]);
-    if (result.rows.length === 0) return res.status(404).json({ error: "Certificate not found" });
 
-    res.json({ certificate: result.rows[0] });
-} catch (err) {
-    res.status(500).json({ error: err.message });
-}
-});
-
-// Nurse: Issue Certificate (Update Status if not already - can also just use mark-complete)
-router.post('/nurse/issue-certificate', async (req, res) => {
-    const { recordId } = req.body;
-    try {
-        await db.query("UPDATE vaccination_records SET status='completed' WHERE id=$1", [recordId]);
-        res.json({ message: "Certificate issued (Status set to Completed)" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-await db.query(sql, [patientId, vaccineId, hospitalId, date]);
-res.json({ message: "Appointment booked successfully!" });
-    } catch (err) {
-    res.status(500).json({ error: err.message });
-}
-});
 
 // Admin: Get All Users
 router.get('/admin/users', async (req, res) => {
