@@ -1,5 +1,11 @@
 require('dotenv').config();
 const { Pool } = require('pg');
+const dns = require('dns');
+
+// Force IPv4 to avoid IPv6 timeouts
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
