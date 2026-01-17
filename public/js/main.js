@@ -18,12 +18,43 @@ const updateToggleIcon = (theme) => {
 // Init Theme
 const savedTheme = localStorage.getItem('theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
+
 document.addEventListener('DOMContentLoaded', () => {
     updateToggleIcon(savedTheme);
     const btn = document.getElementById('theme-toggle');
     if (btn) btn.addEventListener('click', toggleTheme);
 
-    // Chatbot Logic
+    initGlobalChatbot();
+});
+
+
+// --- GLOBAL CHATBOT INJECTION ---
+function initGlobalChatbot() {
+    // 1. Inject HTML if not exists
+    if (!document.querySelector('.chatbot')) {
+        const chatbotHTML = `
+        <button class="chatbot-toggler">
+            <span>💬</span>
+        </button>
+        <div class="chatbot">
+            <header>
+                <h2>ArogyaVax Assistant</h2>
+                <span class="close-btn" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
+            </header>
+            <ul class="chatbox">
+                <li class="chat incoming">
+                    <p>Hi there! 👋<br>How can I help you with your vaccination needs today?</p>
+                </li>
+            </ul>
+            <div class="chat-input">
+                <textarea placeholder="Type a message..." required></textarea>
+                <span id="send-btn">➤</span>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', chatbotHTML);
+    }
+
+    // 2. Chatbot Logic
     const chatbotToggler = document.querySelector(".chatbot-toggler");
     const closeBtn = document.querySelector(".close-btn");
     const chatbox = document.querySelector(".chatbox");
@@ -56,13 +87,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatbox.appendChild(incomingChatLi);
                 chatbox.scrollTo(0, chatbox.scrollHeight);
 
-                // Simple Logic
-                let response = "I'm just a demo bot, but I can help you register or find a hospital!";
-                if (userMessage.toLowerCase().includes('schedule')) response = "You can view the vaccination schedule in your patient dashboard after logging in.";
-                if (userMessage.toLowerCase().includes('login')) response = "Click the 'Login' button at the top right to access your account.";
-                if (userMessage.toLowerCase().includes('vaccine')) response = "We support tracking for BCG, OPV, Hepatitis B, and many other mandatory vaccines.";
+                // Expanded Logic (Knowledge Base)
+                let response = "I'm here to help! You can ask about **vaccines**, **schedules**, or **login**.";
+                const msg = userMessage.toLowerCase();
 
-                incomingChatLi.querySelector("p").textContent = response;
+                if (msg.includes('schedule') || msg.includes('time')) response = "You can view the full vaccination schedule in your **Patient Dashboard**. It tracks everything from birth to 12 years.";
+                else if (msg.includes('login') || msg.includes('sign in')) response = "Click the **Login** button at the top right. If you are a nurse, toggle to 'Nurse Staff' on the login page.";
+                else if (msg.includes('register') || msg.includes('sign up')) response = "New here? Click **Register**, fill in your details, and verify your email with the OTP.";
+                else if (msg.includes('polio') || msg.includes('opv')) response = "Polio (OPV) is given at birth, 6 months, and 4-6 years. It protects against paralysis.";
+                else if (msg.includes('bcg')) response = "BCG is the first vaccine given at birth to protect against Tuberculosis (TB).";
+                else if (msg.includes('covid') || msg.includes('covaxin')) response = "We record COVID-19 vaccinations too! Check your dashboard for certificates.";
+                else if (msg.includes('nurse')) response = "Nurses can log in to manage appointments and update patient records securely.";
+                else if (msg.includes('hello') || msg.includes('hi')) response = "Hello! 👋 How can I assist you with ArogyaVax today?";
+
+                incomingChatLi.querySelector("p").innerHTML = response.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); // Simple markdown parsing
             }, 600);
         }
 
@@ -74,4 +112,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}

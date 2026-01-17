@@ -17,11 +17,11 @@
             </div>
             <div class="nav-links">
                 <button id="theme-toggle" class="btn-outline" style="border:none; font-size: 1.2rem;">🌙</button>
-                <a href="index.html">Home</a>
-                <a href="centers.html">Find Centers</a>
-                <a href="about.html">About</a>
-                <a href="login.html" class="btn">Login</a>
-                <a href="register.html" class="btn">Register</a>
+                <a href="index.html" data-i18n="nav_home">Home</a>
+                <a href="centers.html" data-i18n="nav_centers">Find Centers</a>
+                <a href="about.html" data-i18n="nav_about">About</a>
+                <a href="login.html" class="btn" data-i18n="nav_login">Login</a>
+                <a href="register.html" class="btn" data-i18n="nav_register">Register</a>
             </div>
         </nav>
     </header>
@@ -54,6 +54,7 @@
         </div>
     </div>
 
+    <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script>
         function switchLoginType(type) {

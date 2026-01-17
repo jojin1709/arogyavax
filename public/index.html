@@ -116,27 +116,9 @@
         <p>&copy; 2026 ArogyaVax. All rights reserved.</p>
         <p>Built for a healthier tomorrow.</p>
     </footer>
-    <!-- Chatbot Widget -->
-    <button class="chatbot-toggler">
-        <span>💬</span>
-    </button>
-    <div class="chatbot">
-        <header>
-            <h2>ArogyaVax Assistant</h2>
-            <span class="close-btn"
-                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
-        </header>
-        <ul class="chatbox">
-            <li class="chat incoming">
-                <p>Hi there! 👋<br>How can I help you with your vaccination needs today?</p>
-            </li>
-        </ul>
-        <div class="chat-input">
-            <textarea placeholder="Type a message..." required></textarea>
-            <span id="send-btn">➤</span>
-        </div>
-    </div>
+    <!-- Chatbot Widget Injected via main.js -->
 
+    <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script>
         // Load Announcements
@@ -159,83 +141,7 @@
             header.insertAdjacentElement('afterend', tickerContainer);
         }
 
-        // --- TRANSLATION LOGIC ---
-        const translations = {
-            en: {
-                nav_home: "Home",
-                nav_centers: "Find Centers",
-                nav_about: "About",
-                nav_login: "Login",
-                nav_register: "Register",
-                hero_title: "Smart Immunization for a Healthier Future",
-                hero_desc: "Digitally manage vaccination records, schedules, and reminders for your family. A secure platform for parents, hospitals, and administrators.",
-                btn_get_started: "Get Started",
-                btn_learn_more: "Learn More",
-                learn_title: "Learn About Vaccines",
-                learn_subtitle: "Understand the vaccines that protect your child.",
-                desc_polio: "Oral Polio Vaccine primarily protects against the poliovirus, which can cause paralysis.",
-                desc_covid: "Vaccines designed to protect against COVID-19 and its severe complications.",
-                desc_bcg: "Bacille Calmette-Guerin vaccine is primarily used against tuberculosis (TB).",
-                desc_hepb: "Recommended for all infants at birth to protect against Hepatitis B virus infection."
-            },
-            ml: {
-                nav_home: "ഹോം",
-                nav_centers: "കേന്ദ്രങ്ങൾ",
-                nav_about: "ഞങ്ങളെ കുറിച്ച്",
-                nav_login: " ലോഗിൻ",
-                nav_register: "രജിസ്റ്റർ",
-                hero_title: "ആരോഗ്യമുള്ള ഭാവിക്കായി സ്മാർട്ട് പ്രതിരോധകുത്തിവയ്പ്പ്",
-                hero_desc: "നിങ്ങളുടെ കുടുംബത്തിനായുള്ള വാക്സിനേഷൻ രേഖകളും ഷെഡ്യൂളുകളും ഓർമ്മപ്പെടുത്തലുകളും ഡിജിറ്റലായി കൈകാര്യം ചെയ്യുക.",
-                btn_get_started: "തുടങ്ങാം",
-                btn_learn_more: "കൂടുതൽ അറിയുക",
-                learn_title: "വാക്സിനുകളെക്കുറിച്ച് അറിയുക",
-                learn_subtitle: "നിങ്ങളുടെ കുട്ടിയെ സംരക്ഷിക്കുന്ന വാക്സിനുകൾ മനസ്സിലാക്കുക.",
-                desc_polio: "പോളിയോ വൈറസിനെതിരെ പ്രവർത്തിക്കുന്ന തുള്ളിമരുന്ന്.",
-                desc_covid: "കോവിഡിനെതിരെ സംരക്ഷണം നൽകുന്ന വാക്സിൻ.",
-                desc_bcg: "ക്ഷയരോഗത്തിനെതിരെ നൽകുന്ന പ്രതിരോധ കുത്തിവയ്പ്പ്.",
-                desc_hepb: "ഹെപ്പറ്റൈറ്റിസ് ബി വൈറസിനെതിരെ നൽകുന്ന വാക്സിൻ."
-            },
-            ta: {
-                nav_home: "முகப்பு",
-                nav_centers: "மையங்கள்",
-                nav_about: "எங்களை பற்றி",
-                nav_login: "உள்நுழைய",
-                nav_register: "பதிவு",
-                hero_title: "ஆரோக்கியமான எதிர்காலத்திற்கான ஸ்மார்ட் தடுப்பூசி",
-                hero_desc: "உங்கள் குடும்பத்திற்கான தடுப்பூசி பதிவுகள் மற்றும் அட்டவணைகளை டிஜிட்டல் முறையில் நிர்வகிக்கவும்.",
-                btn_get_started: "தொடங்குங்கள்",
-                btn_learn_more: "மேலும் அறிக",
-                learn_title: "தடுப்பூசிகள் பற்றி அறிக",
-                learn_subtitle: "உங்கள் குழந்தையைப் பாதுகாக்கும் தடுப்பூசிகளைப் புரிந்து கொள்ளுங்கள்.",
-                desc_polio: "போலியோ வைரஸுக்கு எதிரான வாய்வழி தடுப்பு மருந்து.",
-                desc_covid: "கோவிட்-19 க்கு எதிரான தடுப்பூசி.",
-                desc_bcg: "காசநோய்க்கு எதிரான தடுப்பூசி.",
-                desc_hepb: "ஹெபடைடிஸ் பி வைரஸுக்கு எதிரான தடுப்பூசி."
-            }
-        };
-
-        const langSelect = document.getElementById('langSelect');
-
-        function updateLanguage(lang) {
-            const t = translations[lang];
-            if (!t) return;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key]) el.textContent = t[key];
-            });
-        }
-
-        if (langSelect) {
-            langSelect.addEventListener('change', (e) => {
-                updateLanguage(e.target.value);
-                localStorage.setItem('prefLang', e.target.value);
-            });
-
-            // Load saved preference
-            const savedLang = localStorage.getItem('prefLang') || 'en';
-            langSelect.value = savedLang;
-            updateLanguage(savedLang);
-        }
+    </script>
     </script>
 </body>
 

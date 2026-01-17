@@ -17,7 +17,7 @@
                 <a href="index.html">🩺 ArogyaVax Admin</a>
             </div>
             <div class="nav-links">
-                <a href="index.html"
+                <a href="index.html" data-i18n="nav_home"
                     style="margin-right: 1rem; text-decoration: none; color: var(--text-main);">Home</a>
                 <button id="theme-toggle" class="btn-outline"
                     style="border:none; font-size: 1.2rem; margin-right: 1rem;">🌙</button>
@@ -265,25 +265,9 @@
     </main>
     </div>
 
-    <!-- Chatbot Widget -->
-    <button class="chatbot-toggler"><span>💬</span></button>
-    <div class="chatbot">
-        <header>
-            <h2>System Assistant</h2>
-            <span class="close-btn"
-                style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer;">✕</span>
-        </header>
-        <ul class="chatbox">
-            <li class="chat incoming">
-                <p>Reporting systems active.</p>
-            </li>
-        </ul>
-        <div class="chat-input">
-            <textarea placeholder="Type a message..." required></textarea>
-            <span id="send-btn">➤</span>
-        </div>
-    </div>
+    <!-- Chatbot Widget Injected via main.js -->
 
+    <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script>
         const user = JSON.parse(localStorage.getItem('user'));
