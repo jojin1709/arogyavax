@@ -31,24 +31,124 @@
         </aside>
 
         <main class="main-content">
-            <h2>Administer Vaccine</h2>
-            <br>
-            <div class="auth-container" style="margin: 0; max-width: 600px;">
-                <form id="administerForm">
-                    <div class="form-group">
-                        <label for="phone">Patient Phone Number / Aadhaar</label>
-                        <input type="text" id="patientIdentifier" placeholder="Enter identifier" required>
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showSection('administerSection')">Administer Vaccine</button>
+                <button class="tab-btn" onclick="showSection('managePatientSection')">Manage Patients</button>
+            </div>
+
+            <!-- Administer Vaccine Section -->
+            <div id="administerSection" class="section-content">
+                <h2>Administer Vaccine</h2>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form id="administerForm">
+                        <div class="form-group">
+                            <label for="phone">Patient Phone Number / Aadhaar</label>
+                            <input type="text" id="patientIdentifier" placeholder="Enter identifier" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vaccine">Select Vaccine</label>
+                            <select id="vaccineSelect">
+                                <option value="1">BCG</option>
+                                <option value="2">Hepatitis B</option>
+                                <option value="3">OPV</option>
+                                <option value="4">Covaxin</option>
+                                <option value="5">Covishield</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Mark as Administered</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Manage Patients Section -->
+            <div id="managePatientSection" class="section-content" style="display: none;">
+                <h2>Manage Patients</h2>
+
+                <!-- Search -->
+                <div class="search-bar" style="margin-bottom: 2rem; display: flex; gap: 10px;">
+                    <input type="text" id="statsSearch" placeholder="Search by Name, Phone, or Aadhaar..."
+                        style="flex: 1; padding: 10px;">
+                    <button class="btn" onclick="searchPatients()">Search</button>
+                </div>
+
+                <!-- Search Results -->
+                <div id="searchResults" style="margin-bottom: 2rem;"></div>
+
+                <!-- Patient Editor (Hidden by default) -->
+                <div id="patientEditor"
+                    style="display: none; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+                    <h3>Edit Patient Details</h3>
+                    <form id="editPatientForm">
+                        <input type="hidden" id="edit-id">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="edit-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" id="edit-phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Aadhaar</label>
+                            <input type="text" id="edit-aadhaar">
+                        </div>
+                        <div class="form-group">
+                            <label>DOB</label>
+                            <input type="date" id="edit-dob">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="edit-gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            <textarea id="edit-address"></textarea>
+                        </div>
+                        <button type="submit" class="btn">Save Changes</button>
+                        <button type="button" class="btn-outline" onclick="closeEditor()">Cancel</button>
+                    </form>
+
+                    <h3 style="margin-top: 2rem;">Vaccination History</h3>
+                    <table class="table" style="width: 100%; margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>Vaccine</th>
+                                <th>Date</th>
+                                <th>Result</th>
+                                <th>Certificate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Certificate Modal -->
+            <div id="certificateModal" class="modal"
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+                <div class="modal-content"
+                    style="background:white; padding:40px; border-radius:10px; text-align:center; max-width:600px; width:90%;">
+                    <div id="certContent" style="border: 5px double #2c3e50; padding: 20px;">
+                        <h1 style="color: #2c3e50;">Vaccination Certificate</h1>
+                        <p>This is to certify that</p>
+                        <h2 id="certName" style="color: #27ae60;">[Patient Name]</h2>
+                        <p>has successfully received the vaccine</p>
+                        <h3 id="certVaccine" style="color: #2980b9;">[Vaccine Name]</h3>
+                        <p>on <span id="certDate">[Date]</span> at <span id="certHospital">City General Hospital</span>
+                        </p>
+                        <br>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=Verified" alt="QR">
+                        <p style="font-size: 0.8rem; color: #7f8c8d; margin-top:10px;">Verified by ArogyaVax</p>
                     </div>
-                    <div class="form-group">
-                        <label for="vaccine">Select Vaccine</label>
-                        <select id="vaccineSelect">
-                            <option value="1">BCG</option>
-                            <option value="2">Hepatitis B</option>
-                            <option value="3">OPV</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn">Mark as Administered</button>
-                </form>
+                    <br>
+                    <button class="btn" onclick="printCertificate()">Print</button>
+                    <button class="btn-outline" onclick="closeCertificate()">Close</button>
+                </div>
             </div>
         </main>
     </div>
@@ -84,6 +184,14 @@
             window.location.href = 'index.html';
         }
 
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Administer Vaccine Logic
         document.getElementById('administerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const identifier = document.getElementById('patientIdentifier').value;
@@ -110,6 +218,120 @@
                 alert('System Error');
             }
         });
+
+        // Search Patients
+        async function searchPatients() {
+            const query = document.getElementById('statsSearch').value;
+            const res = await fetch(`/api/nurse/search-patients?query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '';
+
+            if (data.patients.length === 0) {
+                resultsDiv.innerHTML = '<p>No patients found.</p>';
+                return;
+            }
+
+            data.patients.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'card'; // using existing card class if any, or plain div
+                div.style.padding = '10px';
+                div.style.marginBottom = '10px';
+                div.style.border = '1px solid #ccc';
+                div.innerHTML = `
+                    <p><strong>${p.name}</strong> - ${p.phone || 'No Phone'}</p>
+                    <button class="btn-outline" onclick="editPatient(${p.id})">Manage</button>
+                `;
+                resultsDiv.appendChild(div);
+            });
+        }
+
+        // Edit Patient
+        async function editPatient(id) {
+            const res = await fetch(`/api/nurse/patient/${id}`);
+            if (!res.ok) return alert('Error fetching patient details');
+
+            const data = await res.json();
+            const p = data.patient;
+
+            document.getElementById('patientEditor').style.display = 'block';
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-name').value = p.name;
+            document.getElementById('edit-phone').value = p.phone || '';
+            document.getElementById('edit-aadhaar').value = p.aadhaar || '';
+            document.getElementById('edit-dob').value = p.dob ? p.dob.split('T')[0] : '';
+            document.getElementById('edit-gender').value = p.gender || 'Male';
+            document.getElementById('edit-address').value = p.address || '';
+
+            // Render History
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            data.vaccinations.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${v.vaccine_name}</td>
+                    <td>${new Date(v.date_administered).toLocaleDateString()}</td>
+                    <td>Administered</td>
+                    <td><button class="btn" onclick="openCertificate('${p.name}', '${v.vaccine_name}', '${v.date_administered}')">View Cert</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('editPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const body = {
+                name: document.getElementById('edit-name').value,
+                phone: document.getElementById('edit-phone').value,
+                aadhaar: document.getElementById('edit-aadhaar').value,
+                dob: document.getElementById('edit-dob').value,
+                gender: document.getElementById('edit-gender').value,
+                address: document.getElementById('edit-address').value
+            };
+
+            const res = await fetch(`/api/nurse/patient/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert('Patient details updated!');
+                closeEditor();
+                searchPatients(); // refresh list
+            } else {
+                alert('Update failed');
+            }
+        });
+
+        function closeEditor() {
+            document.getElementById('patientEditor').style.display = 'none';
+        }
+
+        // Certificate
+        function openCertificate(name, vaccine, date) {
+            document.getElementById('certificateModal').style.display = 'flex';
+            document.getElementById('certName').innerText = name;
+            document.getElementById('certVaccine').innerText = vaccine;
+            document.getElementById('certDate').innerText = new Date(date).toLocaleDateString();
+        }
+
+        function closeCertificate() {
+            document.getElementById('certificateModal').style.display = 'none';
+        }
+
+        function printCertificate() {
+            const content = document.getElementById('certContent').innerHTML;
+            const win = window.open('', '', 'height=700,width=700');
+            win.document.write('<html><head><title>Certificate</title>');
+            win.document.write('</head><body style="text-align:center; font-family:sans-serif;">');
+            win.document.write(content);
+            win.document.write('</body></html>');
+            win.document.close();
+            win.print();
+        }
     </script>
 </body>
 

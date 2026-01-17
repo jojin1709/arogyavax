@@ -117,4 +117,65 @@ router.post('/stock/add', async (req, res) => {
     }
 });
 
+// Nurse: Search Patients
+router.get('/nurse/search-patients', async (req, res) => {
+    const { query } = req.query;
+    if (!query) return res.json({ patients: [] });
+
+    try {
+        const sql = `
+            SELECT id, name, email, phone, aadhaar, dob, gender, address 
+            FROM users 
+            WHERE role = 'patient' AND (
+                name ILIKE $1 OR 
+                email ILIKE $1 OR 
+                phone ILIKE $1 OR 
+                aadhaar ILIKE $1
+            )
+        `;
+        const result = await db.query(sql, [`%${query}%`]);
+        res.json({ patients: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse: Get Patient Details
+router.get('/nurse/patient/:id', async (req, res) => {
+    try {
+        const userRes = await db.query("SELECT id, name, email, phone, aadhaar, dob, gender, address FROM users WHERE id = $1", [req.params.id]);
+        if (userRes.rows.length === 0) return res.status(404).json({ error: "Patient not found" });
+
+        const historyRes = await db.query(`
+            SELECT r.id, r.date_administered, v.name as vaccine_name, h.name as hospital_name
+            FROM vaccination_records r
+            LEFT JOIN vaccines v ON r.vaccine_id = v.id
+            LEFT JOIN hospitals h ON r.hospital_id = h.id
+            WHERE r.patient_id = $1
+            ORDER BY r.date_administered DESC
+        `, [req.params.id]);
+
+        res.json({
+            patient: userRes.rows[0],
+            vaccinations: historyRes.rows
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse: Update Patient Details
+router.put('/nurse/patient/:id', async (req, res) => {
+    const { name, phone, aadhaar, dob, gender, address } = req.body;
+    try {
+        await db.query(
+            "UPDATE users SET name=$1, phone=$2, aadhaar=$3, dob=$4, gender=$5, address=$6 WHERE id=$7",
+            [name, phone, aadhaar, dob, gender, address, req.params.id]
+        );
+        res.json({ message: "Patient details updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
