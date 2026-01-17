@@ -14,17 +14,25 @@ router.post('/register', async (req, res) => {
     try {
         const hash = await bcrypt.hash(password, 10);
 
+        // Determine Status: Nurses are pending, others active
+        const status = (role === 'nurse') ? 'pending' : 'active';
+
         // Include profile_pic (default to null if not provided)
-        const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar, profile_pic) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`;
-        const params = [name, email, hash, role, phone, aadhaar, req.body.profile_pic || null];
+        const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar, profile_pic, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`;
+        const params = [name, email, hash, role, phone, aadhaar, req.body.profile_pic || null, status];
 
         try {
             const result = await db.query(sql, params);
-            res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
+            // Custom message for nurses
+            if (role === 'nurse') {
+                res.status(201).json({ message: 'Registration successful! Please wait for Admin approval to login.', userId: result.rows[0].id });
+            } else {
+                res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
+            }
         } catch (dbErr) {
             // Check for "column does not exist" error (Postgres error code 42703)
             if (dbErr.code === '42703') {
-                console.warn("Registration fallback: 'profile_pic' column missing. Retrying without it.");
+                console.warn("Registration fallback: 'profile_pic' or 'status' column missing. Retrying basic insert.");
                 const fallbackSql = `INSERT INTO users (name, email, password, role, phone, aadhaar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
                 const fallbackParams = [name, email, hash, role, phone, aadhaar];
                 const fallbackResult = await db.query(fallbackSql, fallbackParams);

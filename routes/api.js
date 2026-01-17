@@ -2,6 +2,80 @@ const express = require('express');
 const db = require('../database');
 const router = express.Router();
 
+// Helper: Log Audit
+async function logAudit(action, details, performedBy) {
+    try {
+        await db.query("INSERT INTO audit_logs (action, details, performed_by) VALUES ($1, $2, $3)", [action, details, performedBy]);
+    } catch (e) {
+        console.error("Audit Log Failure:", e);
+    }
+}
+
+// Get Audit Logs
+router.get('/admin/audit-logs', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100");
+        res.json({ logs: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// CMS: Get Announcements
+router.get('/announcements', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM announcements ORDER BY created_at DESC LIMIT 10");
+        res.json({ announcements: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// CMS: Post Announcement
+router.post('/admin/announcement', async (req, res) => {
+    const { title, message } = req.body;
+    try {
+        await db.query("INSERT INTO announcements (title, message) VALUES ($1, $2)", [title, message]);
+        await logAudit('Post Announcement', `Title: ${title}`, 'Admin');
+        res.json({ message: "Announcement posted." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse Approvals: List Pending
+router.get('/admin/nurse-requests', async (req, res) => {
+    try {
+        const result = await db.query("SELECT id, name, email, phone, created_at FROM users WHERE role='nurse' AND status='pending'");
+        res.json({ requests: result.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse Approvals: Approve
+router.post('/admin/approve-nurse/:id', async (req, res) => {
+    try {
+        await db.query("UPDATE users SET status='active' WHERE id=$1", [req.params.id]);
+        await logAudit('Approve Nurse', `Nurse ID: ${req.params.id}`, 'Admin');
+        res.json({ message: "Nurse Approved!" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse Approvals: Reject (Delete)
+router.post('/admin/reject-nurse/:id', async (req, res) => {
+    try {
+        // Log before delete
+        await logAudit('Reject Nurse', `Rejected Nurse ID: ${req.params.id}`, 'Admin');
+        await db.query("DELETE FROM users WHERE id=$1", [req.params.id]);
+        res.json({ message: "Nurse Request Rejected (User Deleted)." });
+    } catch (err) {
+        res.status(500).json({ error: "Error deleting nurse record." });
+    }
+});
+
 // Get Patient History
 router.get('/user/:id/history', async (req, res) => {
     const userId = req.params.id;
@@ -35,6 +109,17 @@ router.get('/admin/hospitals', async (req, res) => {
         res.json({ hospitals: result.rows });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete Hospital
+router.delete('/admin/hospital/:id', async (req, res) => {
+    try {
+        await db.query("DELETE FROM hospitals WHERE id = $1", [req.params.id]);
+        await logAudit('Delete Hospital', `Hospital ID: ${req.params.id}`, 'Admin');
+        res.json({ message: "Hospital deleted." });
+    } catch (err) {
+        res.status(500).json({ error: "Cannot delete hospital with associated records." });
     }
 });
 
@@ -80,6 +165,17 @@ router.get('/admin/users', async (req, res) => {
     }
 });
 
+// Admin: Delete User
+router.delete('/admin/user/:id', async (req, res) => {
+    try {
+        await db.query("DELETE FROM users WHERE id = $1", [req.params.id]);
+        await logAudit('Delete User', `User ID: ${req.params.id}`, 'Admin');
+        res.json({ message: "User deleted." });
+    } catch (err) {
+        res.status(500).json({ error: "Cannot delete user with associated records." });
+    }
+});
+
 // Get Vaccines List
 router.get('/vaccines', async (req, res) => {
     try {
@@ -114,68 +210,55 @@ router.get('/admin/recent-activity', async (req, res) => {
     }
 });
 
-// Admin Stats
+// Admin Stats & Charts
 router.get('/admin/stats', async (req, res) => {
     try {
         const pCount = await db.query("SELECT COUNT(*) as count FROM users WHERE role='patient'");
         const hCount = await db.query("SELECT COUNT(*) as count FROM hospitals");
         const vCount = await db.query("SELECT COUNT(*) as count FROM vaccination_records WHERE status='administered'");
 
+        // Chart Data: Monthly Vaccinations
+        const chartRes = await db.query(`
+            SELECT TO_CHAR(date_administered, 'Mon') as month, COUNT(*) as count 
+            FROM vaccination_records 
+            WHERE status='administered' 
+            GROUP BY TO_CHAR(date_administered, 'Mon'), EXTRACT(MONTH FROM date_administered)
+            ORDER BY EXTRACT(MONTH FROM date_administered)
+        `);
+
+        // Chart Data: Gender Distribution
+        const genderRes = await db.query(`
+            SELECT gender, COUNT(*) as count FROM users WHERE role='patient' GROUP BY gender
+        `);
+
         res.json({
             patients: pCount.rows[0].count,
             hospitals: hCount.rows[0].count,
-            vaccinations: vCount.rows[0].count
+            vaccinations: vCount.rows[0].count,
+            chartData: {
+                labels: chartRes.rows.map(r => r.month),
+                data: chartRes.rows.map(r => r.count)
+            },
+            genderData: {
+                labels: genderRes.rows.map(r => r.gender || 'Unknown'),
+                data: genderRes.rows.map(r => r.count)
+            }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Record Vaccine
-router.post('/record-vaccine', async (req, res) => {
-    const { identifier, vaccineId, vaccineName } = req.body;
-
-    try {
-        const uRes = await db.query("SELECT id, name FROM users WHERE phone = $1 OR aadhaar = $2", [identifier, identifier]);
-        const user = uRes.rows[0];
-
-        if (!user) return res.status(404).json({ error: "Patient not found." });
-
-        const date = new Date().toISOString().split('T')[0];
-        // Ensure hospital exists with ID 1 for foreign key constraint
-        // (In a real app, this would be dynamic)
-
-        // Check if hospital 1 exists, if not insert it
-        await db.query(`INSERT INTO hospitals (id, name, location, approved_status) VALUES (1, 'City General', 'City', 1) ON CONFLICT (id) DO NOTHING`);
-
-        const sql = `INSERT INTO vaccination_records (patient_id, vaccine_id, date_administered, hospital_id, status) VALUES ($1, $2, $3, 1, 'administered')`;
-        await db.query(sql, [user.id, vaccineId, date]);
-
-        res.json({ message: "Vaccine administered successfully!", patient: user.name });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Stock Management
-router.get('/stock', async (req, res) => {
-    try {
-        const sql = `SELECT s.id, v.name as vaccine_name, s.quantity 
-                     FROM stock s 
-                     LEFT JOIN vaccines v ON s.vaccine_id = v.id`;
-        const result = await db.query(sql);
-        res.json({ stock: result.rows });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
+// Update Stock
 router.post('/stock/add', async (req, res) => {
-    const { vaccineName, quantity } = req.body;
+    const { vaccineName, quantity, hospitalId } = req.body;
+    const hospId = hospitalId || 1; // Default to 1 if not provided (fallback)
 
-    // Ensure hospital 1 exists
     try {
-        await db.query(`INSERT INTO hospitals (id, name, location, approved_status) VALUES (1, 'City General', 'City', 1) ON CONFLICT (id) DO NOTHING`);
+        // Ensure hospital exists (if fallback)
+        if (hospId === 1) {
+            await db.query(`INSERT INTO hospitals (id, name, location, approved_status) VALUES (1, 'City General', 'City', 1) ON CONFLICT (id) DO NOTHING`);
+        }
 
         // Find Vaccine ID
         let vRes = await db.query("SELECT id FROM vaccines WHERE name = $1", [vaccineName]);
@@ -188,16 +271,21 @@ router.post('/stock/add', async (req, res) => {
             vaccineId = vRes.rows[0].id;
         }
 
-        // Update Stock for Hospital 1
-        const sRes = await db.query("SELECT id, quantity FROM stock WHERE vaccine_id = $1 AND hospital_id = 1", [vaccineId]);
+        // Update Stock
+        const sRes = await db.query("SELECT id, quantity FROM stock WHERE vaccine_id = $1 AND hospital_id = $2", [vaccineId, hospId]);
 
         if (sRes.rows.length > 0) {
-            const newQty = sRes.rows[0].quantity + parseInt(quantity);
-            await db.query("UPDATE stock SET quantity = $1 WHERE id = $2", [newQty, sRes.rows[0].id]);
+            const newQty = parseInt(quantity); // Set to new quantity (or add? UI says "Add slots", usually implies adding to total)
+            // Let's assume it sets the *available* slots for simplicity, or we can add. 
+            // "Add Slots / Quantity" usually means "I want to add 50 more".
+            const totalQty = sRes.rows[0].quantity + newQty;
+            await db.query("UPDATE stock SET quantity = $1 WHERE id = $2", [totalQty, sRes.rows[0].id]);
         } else {
-            await db.query("INSERT INTO stock (hospital_id, vaccine_id, quantity) VALUES (1, $1, $2)", [vaccineId, quantity]);
+            await db.query("INSERT INTO stock (hospital_id, vaccine_id, quantity) VALUES ($1, $2, $3)", [hospId, vaccineId, quantity]);
         }
-        res.json({ message: "Stock updated" });
+
+        await logAudit('Update Stock', `Added ${quantity} ${vaccineName} to Hospital ${hospId}`, 'Admin');
+        res.json({ message: "Stock updated successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -27,23 +27,15 @@
     </header>
 
     <div class="dashboard-container">
-        <aside class="sidebar">
-            <a href="#" class="sidebar-link active">📊 System Overview</a>
-            <a href="#" class="sidebar-link">🏥 Manage Hospitals</a>
-            <a href="#" class="sidebar-link">💉 Manage Slots</a>
-            <a href="#" class="sidebar-link">
-                📊 Reports & Analytics
-            </a>
-            <a href="#" class="sidebar-link">
-                📦 Stock Management
-            </a>
-            <a href="#" class="sidebar-link">
-                📢 CMS / Announcements
-            </a>
-            <a href="#" class="sidebar-link">
-                👥 Manage Users
-            </a>
-            <a href="#" class="sidebar-link">📑 Reports</a>
+        <a href="#" class="sidebar-link active">📊 System Overview</a>
+        <a href="#" class="sidebar-link">🏥 Manage Hospitals</a>
+        <a href="#" class="sidebar-link">💉 Manage Slots</a>
+        <a href="#" class="sidebar-link">📊 Reports & Analytics</a>
+        <a href="#" class="sidebar-link">📦 Stock Management</a>
+        <a href="#" class="sidebar-link">📢 CMS / Announcements</a>
+        <a href="#" class="sidebar-link">👥 Manage Users</a>
+        <a href="#" class="sidebar-link">👩‍⚕️ Nurse Requests</a>
+        <a href="#" class="sidebar-link">📜 Audit Logs</a>
         </aside>
 
         <main class="main-content">
@@ -195,6 +187,52 @@
             </table>
         </div>
     </div>
+
+    <!-- Audit Logs Section -->
+    <div id="audit-section" style="display: none; margin-top: 2rem;">
+        <h3>📜 System Audit Logs</h3>
+        <div class="table-container" style="margin-top: 1rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Performed By</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    <tr>
+                        <td colspan="4">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Nurse Requests Section -->
+    <div id="nurse-requests-section" style="display: none; margin-top: 2rem;">
+        <h3>👩‍⚕️ Nurse Registration Requests</h3>
+        <p>Approve or Reject new nurse registrations.</p>
+        <div class="table-container" style="margin-top: 1rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Registered At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="nurseRequestsBody">
+                    <tr>
+                        <td colspan="5">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <!-- Reminders Feature -->
     <div class="auth-container" style="margin: 2rem 0 0 0; max-width: 600px;">
         <h4>🔔 Daily Reminders</h4>
@@ -282,43 +320,49 @@
 
         // --- CHART JS LOGIC ---
         let chartsInitialized = false;
-        function initCharts() {
+        async function initCharts() {
             if (chartsInitialized) return;
 
-            // Vaccination Trends (Mock Monthly Data)
-            const ctx1 = document.getElementById('vaccinationChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Vaccinations Administered',
-                        data: [12, 19, 3, 5, 2, 3], // Mock data
-                        borderColor: '#059669',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)'
-                    }]
-                },
-                options: { responsive: true, plugins: { title: { display: true, text: 'Monthly Trends' } } }
-            });
+            try {
+                const res = await fetch('/api/admin/stats');
+                const data = await res.json();
 
-            // Gender Distribution (Mock)
-            const ctx2 = document.getElementById('genderChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Male', 'Female', 'Other'],
-                    datasets: [{
-                        data: [55, 45, 5],
-                        backgroundColor: ['#3B82F6', '#EC4899', '#9CA3AF']
-                    }]
-                },
-                options: { responsive: true, plugins: { title: { display: true, text: 'Demographics' } } }
-            });
+                // Vaccination Trends
+                const ctx1 = document.getElementById('vaccinationChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: data.chartData ? data.chartData.labels : ['No Data'],
+                        datasets: [{
+                            label: 'Vaccinations Administered',
+                            data: data.chartData ? data.chartData.data : [0],
+                            borderColor: '#059669',
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Monthly Trends' } } }
+                });
 
-            chartsInitialized = true;
+                // Gender Distribution
+                const ctx2 = document.getElementById('genderChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.genderData ? data.genderData.labels : ['No Data'],
+                        datasets: [{
+                            data: data.genderData ? data.genderData.data : [1], // Default to 1 to show empty ring
+                            backgroundColor: ['#3B82F6', '#EC4899', '#9CA3AF']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { title: { display: true, text: 'Demographics' } } }
+                });
+
+                chartsInitialized = true;
+            } catch (e) { console.error("Chart Error", e); }
         }
+
 
         // --- STOCK LOGIC ---
         async function loadStock() {
@@ -444,8 +488,13 @@
                 if (data.hospitals && data.hospitals.length > 0) {
                     data.hospitals.forEach(h => {
                         const li = document.createElement('li');
-                        li.style.cssText = 'padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;';
-                        li.innerHTML = `<span>${h.name} (${h.location})</span> <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Active</button>`;
+                        li.style.cssText = 'padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+                        li.innerHTML = `
+                            <span>${h.name} (${h.location})</span> 
+                            <div>
+                                <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;">Active</button>
+                                <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; border-color: red; color: red;" onclick="deleteHospital(${h.id})">Delete</button>
+                            </div>`;
                         list.appendChild(li);
                     });
                 } else {
@@ -537,7 +586,10 @@
                 document.getElementById('cms-section').style.display = 'none';
                 document.getElementById('reports-section').style.display = 'none';
                 document.getElementById('stock-section').style.display = 'none';
-                document.getElementById('users-section').style.display = 'none'; // New: Hide Users section
+                document.getElementById('reports-section').style.display = 'none';
+                document.getElementById('stock-section').style.display = 'none';
+                document.getElementById('users-section').style.display = 'none';
+                document.getElementById('nurse-requests-section').style.display = 'none'; // Hide Nurse Section by default
 
                 // Show target
                 const text = e.target.textContent.trim();
@@ -562,6 +614,10 @@
                 else if (text.includes('Users')) { // New: Handle Users section
                     document.getElementById('users-section').style.display = 'block';
                     loadUsers();
+                }
+                else if (text.includes('Nurse Requests')) {
+                    document.getElementById('nurse-requests-section').style.display = 'block';
+                    loadNurseRequests();
                 }
             });
         });
