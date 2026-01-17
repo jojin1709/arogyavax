@@ -114,6 +114,41 @@ router.post('/send-otp', (req, res) => {
     res.json({ message: 'OTP Sent successfully!', otp: otp });
 });
 
+// Reset Password Route  
+router.post('/reset-password', async (req, res) => {
+    const { email, otp, password } = req.body;
+
+    if (!email || !otp || !password) {
+        return res.status(400).json({ error: 'Email, OTP and new password required.' });
+    }
+
+    // Verify OTP
+    if (!otpStore[email] || otpStore[email] !== otp) {
+        return res.status(401).json({ error: 'Invalid or expired OTP.' });
+    }
+
+    try {
+        // Hash new password
+        const hash = await bcrypt.hash(password, 10);
+
+        // Update password
+        const sql = `UPDATE users SET password = $1 WHERE email = $2 RETURNING id`;
+        const result = await db.query(sql, [hash, email]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        // Clear OTP
+        delete otpStore[email];
+
+        res.json({ message: 'Password reset successful!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database error.' });
+    }
+});
+
 // Update Profile Route
 router.put('/update-profile', async (req, res) => {
     const { id, name, phone, password, profile_pic } = req.body;

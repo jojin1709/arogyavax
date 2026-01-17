@@ -7,6 +7,7 @@
     <title>Patient Dashboard - ArogyaVax</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -93,7 +94,7 @@
                 </div>
             </div>
 
-            <!-- Booking Section (Hidden by default, for now simple implementation) -->
+            <!-- Booking Section -->
             <div id="booking-section" style="margin-top: 2rem;">
                 <h3>Book Vaccination Appointment</h3>
                 <br>
@@ -187,8 +188,6 @@
         </main>
     </div>
 
-    <!-- Chatbot Widget Injected via main.js -->
-
     <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script>
@@ -197,7 +196,6 @@
             window.location.href = 'login.html';
         } else {
             document.getElementById('userName').textContent = user.name;
-            // Pre-fill profile form
             if (document.getElementById('updateName')) document.getElementById('updateName').value = user.name;
         }
 
@@ -208,28 +206,22 @@
 
         // Navigation Logic
         const links = document.querySelectorAll('.sidebar-link');
-
         links.forEach(link => {
             link.addEventListener('click', (e) => {
                 const text = link.textContent.trim();
                 let targetId = null;
 
-                // Determine target based on text content
                 if (text.includes('Overview')) targetId = 'overview-section';
-                if (text.includes('Schedule')) targetId = 'overview-section'; // Schedule is part of overview
+                if (text.includes('Schedule')) targetId = 'overview-section';
                 if (text.includes('Book')) targetId = 'booking-section';
                 if (text.includes('History')) targetId = 'history-section';
                 if (text.includes('Settings')) targetId = 'settings-section';
 
                 if (targetId) {
                     e.preventDefault();
-                    // Update Active Link
                     links.forEach(l => l.classList.remove('active'));
                     link.classList.add('active');
-
-                    // Hide all sections
                     document.querySelectorAll('main > div').forEach(div => div.style.display = 'none');
-                    // Show target
                     const target = document.getElementById(targetId);
                     if (target) target.style.display = 'block';
                 }
@@ -243,7 +235,6 @@
             if (!vaccineSelect || !hospitalSelect) return;
 
             try {
-                // Load Vaccines
                 const vRes = await fetch('/api/vaccines');
                 const vData = await vRes.json();
                 if (vData.vaccines) {
@@ -256,7 +247,6 @@
                     });
                 }
 
-                // Load Hospitals
                 const hRes = await fetch('/api/admin/hospitals');
                 const hData = await hRes.json();
                 if (hData.hospitals) {
@@ -271,7 +261,6 @@
             } catch (e) { console.error("Error loading options", e); }
         }
 
-        // Call once on load, or lazy load? Load once is fine.
         loadBookingOptions();
 
         const bookingForm = document.getElementById('bookingForm');
@@ -291,12 +280,8 @@
                     const data = await res.json();
                     if (res.ok) {
                         alert(data.message);
-                        // Reset form
                         bookingForm.reset();
-                        // Refresh data (history/schedule)
                         loadData();
-                        // Switch to history or schedule view?
-                        // document.querySelector('.sidebar-link:contains("Schedule")').click(); // Pseudo-code
                     } else {
                         alert("Booking Failed: " + data.error);
                     }
@@ -311,7 +296,6 @@
         const profileForm = document.getElementById('profileForm');
         let base64Image = "";
 
-        // Handle File Selection
         if (document.getElementById('profileUpload')) {
             document.getElementById('profileUpload').addEventListener('change', function (e) {
                 const file = e.target.files[0];
@@ -326,12 +310,10 @@
             });
         }
 
-        // Init Profile Pic from User Data
         if (user.profile_pic) {
             if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = user.profile_pic;
             if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = user.profile_pic;
         } else {
-            // Fallback
             const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
             if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').src = fallback;
             if (document.getElementById('profilePreview')) document.getElementById('profilePreview').src = fallback;
@@ -343,8 +325,6 @@
                 const name = document.getElementById('updateName').value;
                 const phone = document.getElementById('updatePhone').value;
                 const password = document.getElementById('updatePassword').value;
-
-                // Keep existing photo if not changed
                 const finalImage = base64Image || user.profile_pic || "";
 
                 try {
@@ -355,10 +335,8 @@
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        // Update local storage with new data
                         localStorage.setItem('user', JSON.stringify(data.user));
                         alert('Profile updated successfully!');
-                        // Reload to reflect changes globally
                         window.location.reload();
                     } else {
                         alert(data.error);
@@ -368,48 +346,6 @@
                     alert('Error updating profile.');
                 }
             });
-        }
-
-        function downloadCertificate(vaccineName, date, hospital) {
-            const certWindow = window.open('', 'PRINT', 'height=600,width=800');
-            certWindow.document.write(`
-                <html>
-                <head>
-                    <title>Vaccination Certificate - ${vaccineName}</title>
-                    <link rel="stylesheet" href="css/style.css">
-                    <style>
-                        body { padding: 40px; font-family: 'Inter', sans-serif; text-align: center; border: 10px solid #065F46; }
-                        h1 { color: #065F46; margin-bottom: 5px; }
-                        h2 { font-weight: 400; color: #555; }
-                        .content { margin-top: 50px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 2; font-size: 1.2rem; }
-                        .seal { margin-top: 50px; font-size: 3rem; }
-                        .footer { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 0.9rem; color: #777; }
-                    </style>
-                </head>
-                <body>
-                    <h1>ArogyaVax</h1>
-                    <h2>Certificate of Vaccination</h2>
-                    <hr style="width: 50%; border-color: #065F46;">
-                    
-                    <div class="content">
-                        <p><strong>Beneficiary Name:</strong> ${user.name}</p>
-                        <p><strong>Vaccine Name:</strong> ${vaccineName}</p>
-                        <p><strong>Date Administered:</strong> ${date}</p>
-                        <p><strong>Vaccinated At:</strong> ${hospital}</p>
-                        <p><strong>Status:</strong> <span style="color: green; font-weight: bold;">Fully Vaccinated</span></p>
-                    </div>
-
-                    <div class="seal">🛡️</div>
-                    <div class="footer">
-                        This is a computer-generated certificate.
-                    </div>
-                </body>
-                </html>
-            `);
-            certWindow.document.close();
-            certWindow.focus();
-            setTimeout(() => { certWindow.print(); }, 1000);
-            return true;
         }
 
         // Real Data load
@@ -426,18 +362,11 @@
                 if (tbody) tbody.innerHTML = '';
                 if (historyBody) historyBody.innerHTML = '';
 
-                let completed = 0;
-                let pending = 0;
+                let completed = 0, pending = 0;
 
-                // Sort of hybrid: Real history + specific mock future schedule for demo
-                // Ideally backend provides schedule. For now, we mix.
-
-                // 1. Render History (Real)
                 if (data.history && data.history.length > 0) {
                     data.history.forEach(item => {
                         completed++;
-
-                        // Add to History Table
                         if (historyBody) {
                             const hTr = document.createElement('tr');
                             hTr.innerHTML = `
@@ -454,7 +383,6 @@
                             historyBody.appendChild(hTr);
                         }
 
-                        // Add to Schedule Table (as Completed)
                         if (tbody) {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
@@ -466,10 +394,8 @@
                             tbody.appendChild(tr);
                         }
                     });
-                    if (document.querySelector('#history-section tbody')) document.querySelector('#history-section tbody').innerHTML = '<tr><td colspan="4">No vaccination history found.</td></tr>';
                 }
 
-                // 2. Fetch and Render Reminders (Intelligent System)
                 const remindersRes = await fetch(`/api/patient/${user.id}/reminders`);
                 const remindersData = await remindersRes.json();
                 const remindersContainer = document.getElementById('reminders-container');
@@ -478,8 +404,7 @@
                     remindersContainer.innerHTML = '';
                     if (remindersData.reminders && remindersData.reminders.length > 0) {
                         remindersData.reminders.forEach(r => {
-                            pending++; // Count upcoming/due in pending stats
-
+                            pending++;
                             const div = document.createElement('div');
                             div.className = `alert alert-${r.alertLevel}`;
                             div.style.padding = '15px';
@@ -487,7 +412,6 @@
                             div.style.borderRadius = '8px';
                             div.style.fontWeight = '500';
 
-                            // Simple inline styles for alert colors
                             if (r.alertLevel === 'danger') {
                                 div.style.backgroundColor = '#fee2e2'; div.style.color = '#dc2626'; div.style.border = '1px solid #fecaca';
                             } else if (r.alertLevel === 'success') {
@@ -501,7 +425,6 @@
                             div.innerHTML = `🔔 ${r.message}`;
                             remindersContainer.appendChild(div);
 
-                            // Also add to Schedule Table
                             if (tbody) {
                                 const tr = document.createElement('tr');
                                 tr.innerHTML = `
@@ -521,15 +444,11 @@
 
             } catch (err) {
                 console.error(err);
-                showToast('Failed to load data', 'error');
             }
 
-            // 4. Load Certificates
             try {
-                // Let's use the new specific endpoint for certificates
                 const certRes = await fetch(`/api/patient/${user.id}/certificates`);
                 const certData = await certRes.json();
-
                 const certContainer = document.getElementById('certificates-container');
                 const certList = document.getElementById('certList');
                 certList.innerHTML = '';
@@ -552,57 +471,52 @@
             } catch (err) { console.error("Cert Load Error", err); }
         }
 
-        // Unified Certificate Download (Print View)
+        // PDF Certificate Download
         function downloadCertificate(vaccineName, date, hospital) {
-            const certWindow = window.open('', 'PRINT', 'height=800,width=1000');
-            certWindow.document.write(`
-                <html>
-                <head>
-                    <title>Vaccination Certificate - ${vaccineName}</title>
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-                        body { padding: 40px; font-family: 'Inter', sans-serif; text-align: center; border: 10px double #065F46; margin: 20px; min-height: 80vh; position: relative; }
-                        .header { margin-bottom: 50px; }
-                        h1 { color: #065F46; font-size: 2.5rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-                        h3 { font-weight: 400; color: #555; margin-top: 10px; font-size: 1.2rem; }
-                        .content { margin-top: 60px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 2.2; font-size: 1.3rem; }
-                        .field { border-bottom: 1px dashed #999; display: inline-block; min-width: 200px; text-align: center; font-weight: bold; color: #333; }
-                        .seal { margin-top: 80px; font-size: 5rem; opacity: 0.8; }
-                        .footer { position: absolute; bottom: 20px; width: 100%; left: 0; font-size: 0.8rem; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
-                        .status { color: #059669; font-weight: bold; padding: 5px 15px; border: 2px solid #059669; border-radius: 50px; text-transform: uppercase; font-size: 1rem; vertical-align: middle; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>ArogyaVax</h1>
-                        <h3>Official Immunization Record</h3>
-                    </div>
-                    
-                    <div class="content">
-                        This is to certify that 
-                        <span class="field">${user.name}</span>
-                        has successfully received the 
-                        <span class="field">${vaccineName}</span>
-                        vaccine on 
-                        <span class="field">${new Date(date).toLocaleDateString()}</span>
-                        at 
-                        <span class="field">${hospital}</span>.
-                        <br><br>
-                        Current Status: <span class="status">Fully Vaccinated</span>
-                    </div>
+            const element = document.createElement('div');
+            element.style.width = '800px';
+            element.style.padding = '40px';
+            element.style.fontFamily = "'Inter', sans-serif";
+            element.style.textAlign = 'center';
+            element.style.border = '10px double #065F46';
+            element.style.background = '#fff';
+            element.style.color = '#333';
 
-                    <div class="seal">🛡️</div>
-                    
-                    <div class="footer">
-                        Generated by ArogyaVax Immunization Management System • Valid Globally
-                    </div>
-                    <script>
-                        window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            certWindow.document.close();
+            element.innerHTML = `
+                <div style="margin-bottom: 50px;">
+                    <h1 style="color: #065F46; font-size: 2.5rem; margin: 0; text-transform: uppercase;">ArogyaVax</h1>
+                    <h3 style="font-weight: 400; color: #555; margin-top: 10px;">Official Immunization Record</h3>
+                </div>
+                
+                <div style="margin-top: 60px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 2.2; font-size: 1.3rem;">
+                    This is to certify that 
+                    <span style="border-bottom: 1px dashed #999; display: inline-block; min-width: 200px; text-align: center; font-weight: bold;">${user.name}</span>
+                    has successfully received the 
+                    <span style="border-bottom: 1px dashed #999; display: inline-block; min-width: 200px; text-align: center; font-weight: bold;">${vaccineName}</span>
+                    vaccine on 
+                    <span style="border-bottom: 1px dashed #999; display: inline-block; min-width: 200px; text-align: center; font-weight: bold;">${new Date(date).toLocaleDateString()}</span>
+                    at 
+                    <span style="border-bottom: 1px dashed #999; display: inline-block; min-width: 200px; text-align: center; font-weight: bold;">${hospital}</span>.
+                    <br><br>
+                    Current Status: <span style="color: #059669; font-weight: bold; padding: 5px 15px; border: 2px solid #059669; border-radius: 50px; text-transform: uppercase; font-size: 1rem; vertical-align: middle;">Fully Vaccinated</span>
+                </div>
+
+                <div style="margin-top: 80px; font-size: 5rem; opacity: 0.8;">🛡️</div>
+                
+                <div style="margin-top: 50px; font-size: 0.8rem; color: #777; border-top: 1px solid #eee; padding-top: 10px;">
+                    Generated by ArogyaVax Immunization Management System • Valid Globally
+                </div>
+            `;
+
+            const opt = {
+                margin: 10,
+                filename: `Certificate_${vaccineName}_${user.name}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
         }
 
         loadData();
