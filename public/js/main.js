@@ -62,7 +62,10 @@ function initGlobalChatbot() {
     const sendChatBtn = document.querySelector(".chat-input span");
 
     if (chatbotToggler) {
-        chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+        chatbotToggler.addEventListener("click", () => {
+            console.log("Chatbot clicked!");
+            document.body.classList.toggle("show-chatbot");
+        });
         closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
 
         const createChatLi = (message, className) => {

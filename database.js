@@ -261,4 +261,5 @@ module.exports = {
         const p = await getPool();
         return p.query(text, params);
     },
+    getPool: getPool
 };
