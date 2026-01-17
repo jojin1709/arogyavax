@@ -80,6 +80,11 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password.' });
         }
 
+        // Check for pending approval
+        if (user.role === 'nurse' && user.status === 'pending') {
+            return res.status(403).json({ error: 'Your account is pending Admin approval.' });
+        }
+
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             res.json({

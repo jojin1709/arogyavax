@@ -612,7 +612,7 @@
                     document.getElementById('stock-section').style.display = 'block';
                     loadStock();
                 }
-                else if (text.includes('Users')) { // New: Handle Users section
+                else if (text.includes('Users')) {
                     document.getElementById('users-section').style.display = 'block';
                     loadUsers();
                 }
@@ -620,9 +620,39 @@
                     document.getElementById('nurse-requests-section').style.display = 'block';
                     loadNurseRequests();
                 }
+                else if (text.includes('Audit')) {
+                    document.getElementById('audit-section').style.display = 'block';
+                    loadAuditLogs();
+                }
             });
         });
-        // --- RECENT ACTIVITY LOGIC ---
+        async function loadAuditLogs() {
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/admin/audit-logs');
+                const data = await res.json();
+                tbody.innerHTML = '';
+                if (!data.logs || data.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No logs found.</td></tr>';
+                    return;
+                }
+                data.logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${log.action}</td>
+                        <td>${log.details}</td>
+                        <td>${log.performed_by}</td>
+                        <td>${new Date(log.created_at).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="4">Error loading logs.</td></tr>';
+            }
+        }
+
         async function loadRecentActivity() {
             try {
                 console.log("Fetching recent activity...");
@@ -738,54 +768,7 @@
             }
         }
 
-        async function loadRecentActivity() {
-            try {
-                const res = await fetch('/api/admin/recent-activity');
-                const data = await res.json();
 
-                // 1. Registrations
-                const regContainer = document.getElementById('recentRegistrations');
-                if (regContainer) {
-                    regContainer.innerHTML = '';
-                    if (!data.registrations || data.registrations.length === 0) {
-                        regContainer.innerHTML = '<p>No new registrations.</p>';
-                    } else {
-                        data.registrations.forEach(user => {
-                            const div = document.createElement('div');
-                            div.className = 'activity-item'; // Ensure this class exists in CSS or use inline
-                            div.style.padding = '10px';
-                            div.style.borderBottom = '1px solid #eee';
-                            div.innerHTML = `<strong>${user.name}</strong> <span style="font-size:0.8rem; color:gray;">(${user.email})</span><br><small>Joined: ${new Date(user.created_at).toLocaleDateString()}</small>`;
-                            regContainer.appendChild(div);
-                        });
-                    }
-                }
-
-                // 2. Bookings
-                const bookContainer = document.getElementById('recentBookings');
-                if (bookContainer) {
-                    bookContainer.innerHTML = '';
-                    if (!data.bookings || data.bookings.length === 0) {
-                        bookContainer.innerHTML = '<p>No recent bookings.</p>';
-                    } else {
-                        data.bookings.forEach(b => {
-                            const div = document.createElement('div');
-                            div.style.padding = '10px';
-                            div.style.borderBottom = '1px solid #eee';
-                            div.innerHTML = `<strong>${b.patient_name}</strong> - ${b.vaccine_name || 'Vaccine'}<br><small>Date: ${new Date(b.appointment_date).toLocaleDateString()}</small>`;
-                            bookContainer.appendChild(div);
-                        });
-                    }
-                }
-
-            } catch (err) {
-                console.error("Recent Activity Load Error", err);
-                const reg = document.getElementById('recentRegistrations');
-                const book = document.getElementById('recentBookings');
-                if (reg) reg.innerHTML = '<p style="color:red">Error loading data</p>';
-                if (book) book.innerHTML = '<p style="color:red">Error loading data</p>';
-            }
-        }
 
         // Initial Load
         loadStats();
