@@ -50,13 +50,21 @@ async function getPool() {
             console.log(`[Platform: ${os.platform()}] Using standard database connection.`);
         }
 
+        console.log(`[DB] Initializing Pool with SSL:`, sslConfig);
+
         pool = new Pool({
             connectionString: connectionString,
-            ssl: sslConfig
+            ssl: sslConfig,
+            connectionTimeoutMillis: 5000, // Fail fast after 5s
+            idleTimeoutMillis: 30000
         });
 
         pool.on('connect', () => {
-            console.log('Connected to the PostgreSQL database.');
+            console.log('[DB] Connected to PostgreSQL successfully.');
+        });
+
+        pool.on('error', (err) => {
+            console.error('[DB] Unexpected Pool Error:', err);
         });
 
         return pool;
