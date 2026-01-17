@@ -64,40 +64,33 @@
     </div>
 
     <!-- OTP Modal -->
-    <div id="otpModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-        <div class="modal-content">
-            <div style="margin-bottom: 1rem; font-size: 3rem;">🔐</div>
-            <h3 style="margin-bottom: 0.5rem; color: var(--dark); font-size: 1.5rem;">Verify Email</h3>
-            <p style="margin-bottom: 1.5rem; color: var(--gray); font-size: 0.95rem;">
-                Enter the 4-digit code sent to <br> <span id="otpEmailDisplay"
-                    style="font-weight: 600; color: var(--primary);"></span>
+    <!-- OTP Modal -->
+    <div id="otpModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">🔐</div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-main); font-size: 1.5rem;">Verify Email</h3>
+            <p style="margin-bottom: 2rem; color: var(--gray); font-size: 0.95rem; line-height: 1.5;">
+                Enter the 4-digit code sent to <br>
+                <span id="otpEmailDisplay" style="font-weight: 600; color: var(--primary);"></span>
             </p>
 
-            <!-- Hidden OTP by default -->
-            <div
-                style="background: #ECFDF5; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed var(--primary);">
-                <p id="hiddenOtpMsg"
-                    style="font-size: 0.85rem; color: var(--primary-hover); margin-bottom: 0.5rem; font-weight: 500;">
-                    Development Mode:
-                </p>
-                <button type="button" onclick="revealOtp()"
-                    style="background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">
-                    👁️ Reveal Simulated OTP
-                </button>
-                <p id="simOtpDisplay"
-                    style="display: none; font-size: 1.5rem; font-weight: 800; color: #1F2937; margin-top: 0.5rem; letter-spacing: 5px;">
-                </p>
-            </div>
-
-            <input type="text" id="otpInput" class="otp-input" placeholder="••••" maxlength="4"
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <input type="text" id="otpInput" class="otp-input-field" placeholder="••••" maxlength="4"
+                autocomplete="one-time-code" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 
             <button onclick="verifyOtp()" id="verifyBtn" class="btn"
-                style="width: 100%; margin-bottom: 0.8rem; padding: 0.8rem;">
+                style="width: 100%; margin-bottom: 1rem; padding: 0.9rem; font-size: 1rem;">
                 Verify & Register
             </button>
-            <button onclick="closeOtpModal()" class="btn-outline" style="width: 100%; border: none;">Cancel</button>
+
+            <button onclick="closeOtpModal()" class="btn-outline"
+                style="width: 100%; border: none; color: var(--gray);">Cancel</button>
+
+            <!-- Dev Helper - Subtle -->
+            <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <span id="simOtpDisplay"
+                    style="display: none; font-weight: bold; color: var(--primary); margin-right: 10px;"></span>
+                <span onclick="revealOtp()" class="dev-otp-link">Tap to reveal OTP (Dev)</span>
+            </div>
         </div>
     </div>
 
@@ -156,7 +149,11 @@
                     document.getElementById('simOtpDisplay').textContent = serverOtp;
                     document.getElementById('otpEmailDisplay').innerText = email;
 
-                    document.getElementById('otpModal').style.display = 'flex';
+                    const modal = document.getElementById('otpModal');
+                    modal.style.display = 'flex';
+                    // Small delay to allow display:flex to apply before adding opacity class
+                    setTimeout(() => modal.classList.add('active'), 10);
+
                     document.getElementById('otpInput').value = '';
                     setTimeout(() => document.getElementById('otpInput').focus(), 100);
                 } else {
@@ -177,11 +174,13 @@
         }
 
         function revealOtp() {
-            document.getElementById('simOtpDisplay').style.display = 'block';
+            document.getElementById('simOtpDisplay').style.display = 'inline-block';
         }
 
         function closeOtpModal() {
-            document.getElementById('otpModal').style.display = 'none';
+            const modal = document.getElementById('otpModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300); // Wait for transition
         }
 
         async function verifyOtp() {
@@ -189,7 +188,7 @@
             // Loose equality check in case of string/number difference
             if (userOtp == serverOtp) {
                 // Success
-                document.getElementById('otpModal').style.display = 'none';
+                document.getElementById('otpModal').classList.remove('active');
                 await registerUser(pendingFormData);
             } else {
                 alert('❌ Invalid OTP. Please try again.');
