@@ -114,15 +114,17 @@
                     <button class="tab-btn" onclick="">Monthly View</button>
                 </div>
                 <div id="calendarView"
-                    style="margin-top:20px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+                    style="margin-top:20px; background: white; color: #333; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee;">
-                        <button class="btn-outline" onclick="changeMonth(-1)">◀ Previous</button>
-                        <h3 id="currentMonthYear" style="margin: 0;">Month Year</h3>
-                        <button class="btn-outline" onclick="changeMonth(1)">Next ▶</button>
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #e9ecef; border-bottom: 1px solid #ddd;">
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="changeMonth(-1)">◀
+                            Prev</button>
+                        <h3 id="currentMonthYear" style="margin: 0; color: #333;">Month Year</h3>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="changeMonth(1)">Next
+                            ▶</button>
                     </div>
                     <div
-                        style="display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; text-align: center; font-weight: 600; padding: 10px 0;">
+                        style="display: grid; grid-template-columns: repeat(7, 1fr); background: #eee; color: #555; text-align: center; font-weight: 700; padding: 10px 0;">
                         <div>Sun</div>
                         <div>Mon</div>
                         <div>Tue</div>
