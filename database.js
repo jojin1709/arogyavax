@@ -15,9 +15,11 @@ async function getPool() {
         const dbUrl = process.env.DATABASE_URL;
         let connectionString = dbUrl;
 
+        let hostname;
+
         try {
             const parsed = new URL(dbUrl);
-            const hostname = parsed.hostname;
+            hostname = parsed.hostname;
 
             console.log(`Resolving database host: ${hostname}...`);
             const addresses = await new Promise((resolve, reject) => {
