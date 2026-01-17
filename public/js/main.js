@@ -54,28 +54,41 @@ function initGlobalChatbot() {
         document.body.insertAdjacentHTML('beforeend', chatbotHTML);
     }
 
-    // 2. Chatbot Logic
-    const chatbotToggler = document.querySelector(".chatbot-toggler");
-    const closeBtn = document.querySelector(".close-btn");
-    const chatbox = document.querySelector(".chatbox");
-    const chatInput = document.querySelector(".chat-input textarea");
-    const sendChatBtn = document.querySelector(".chat-input span");
+    // 2. Chatbot Logic - Re-query elements to ensure they exist
+    setTimeout(() => {
+        const chatbotToggler = document.querySelector(".chatbot-toggler");
+        const closeBtn = document.querySelector(".close-btn");
+        const chatbox = document.querySelector(".chatbox");
+        const chatInput = document.querySelector(".chat-input textarea");
+        const sendChatBtn = document.querySelector(".chat-input span");
 
-    if (chatbotToggler) {
-        chatbotToggler.addEventListener("click", () => {
-            console.log("Chatbot clicked!");
-            document.body.classList.toggle("show-chatbot");
-        });
-        closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+        if (chatbotToggler) {
+            // Remove old listeners to prevent duplicates if re-init
+            const newToggler = chatbotToggler.cloneNode(true);
+            chatbotToggler.parentNode.replaceChild(newToggler, chatbotToggler);
 
-        const createChatLi = (message, className) => {
-            const chatLi = document.createElement("li");
-            chatLi.classList.add("chat", className);
-            chatLi.innerHTML = `<p>${message}</p>`;
-            return chatLi;
+            newToggler.addEventListener("click", () => {
+                console.log("Chatbot clicked!");
+                document.body.classList.toggle("show-chatbot");
+            });
         }
 
-        const handleChat = () => {
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+        }
+
+        // ... rest of logic
+        if (sendChatBtn && chatInput) {
+            sendChatBtn.addEventListener("click", handleChat);
+            chatInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChat();
+                }
+            });
+        }
+
+        function handleChat() {
             const userMessage = chatInput.value.trim();
             if (!userMessage) return;
 
@@ -103,18 +116,25 @@ function initGlobalChatbot() {
                 else if (msg.includes('nurse')) response = "Nurses can log in to manage appointments and update patient records securely.";
                 else if (msg.includes('hello') || msg.includes('hi')) response = "Hello! 👋 How can I assist you with ArogyaVax today?";
 
-                incomingChatLi.querySelector("p").innerHTML = response.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); // Simple markdown parsing
+                incomingChatLi.querySelector("p").innerHTML = response.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             }, 600);
         }
+    }, 100);
 
-        sendChatBtn.addEventListener("click", handleChat);
-        chatInput.addEventListener("keyup", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleChat();
-            }
-        });
+    const createChatLi = (message, className) => {
+        const chatLi = document.createElement("li");
+        chatLi.classList.add("chat", className);
+        chatLi.innerHTML = `<p>${message}</p>`;
+        return chatLi;
     }
+    sendChatBtn.addEventListener("click", handleChat);
+    chatInput.addEventListener("keyup", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleChat();
+        }
+    });
+}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
