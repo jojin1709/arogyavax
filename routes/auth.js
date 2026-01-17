@@ -18,8 +18,21 @@ router.post('/register', async (req, res) => {
         const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar, profile_pic) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`;
         const params = [name, email, hash, role, phone, aadhaar, req.body.profile_pic || null];
 
-        const result = await db.query(sql, params);
-        res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
+        try {
+            const result = await db.query(sql, params);
+            res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
+        } catch (dbErr) {
+            // Check for "column does not exist" error (Postgres error code 42703)
+            if (dbErr.code === '42703') {
+                console.warn("Registration fallback: 'profile_pic' column missing. Retrying without it.");
+                const fallbackSql = `INSERT INTO users (name, email, password, role, phone, aadhaar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
+                const fallbackParams = [name, email, hash, role, phone, aadhaar];
+                const fallbackResult = await db.query(fallbackSql, fallbackParams);
+                res.status(201).json({ message: 'User registered successfully (fallback).', userId: fallbackResult.rows[0].id });
+            } else {
+                throw dbErr; // Re-throw other errors to be caught effectively by the outer catch block
+            }
+        }
     } catch (err) {
         if (err.constraint === 'users_email_key') {
             return res.status(400).json({ error: 'Email already exists.' });
