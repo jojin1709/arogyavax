@@ -22,6 +22,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/fix-db', async (req, res) => {
+    try {
+        await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic TEXT");
+        res.send("Database schema updated: Added profile_pic column.");
+    } catch (e) {
+        res.status(500).send("Error updating schema: " + e.message);
+    }
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
