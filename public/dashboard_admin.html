@@ -568,8 +568,13 @@
         // --- RECENT ACTIVITY LOGIC ---
         async function loadRecentActivity() {
             try {
+                console.log("Fetching recent activity...");
                 const res = await fetch('/api/admin/recent-activity');
+
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+
                 const data = await res.json();
+                console.log("Recent activity data:", data);
 
                 // Render New Patients
                 const pList = document.getElementById('newPatientsList');
@@ -605,12 +610,39 @@
                     bList.innerHTML = '<li>No recent bookings.</li>';
                 }
 
-            } catch (e) { console.error("Activity load error", e); }
+            } catch (e) {
+                console.error("Activity load error", e);
+                document.getElementById('newPatientsList').innerHTML = `<li style="color:red">Error loading: ${e.message}</li>`;
+                document.getElementById('recentBookingsList').innerHTML = `<li style="color:red">Error loading: ${e.message}</li>`;
+            }
         }
 
+        async function loadRecentActivity() {
+            // ... (keep existing implementation) ...
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                if (!res.ok) throw new Error('Failed to fetch stats');
+                const data = await res.json();
+
+                document.getElementById('patientCount').innerText = data.patients || 0;
+                document.getElementById('hospitalCount').innerText = data.hospitals || 0;
+                document.getElementById('vaxCount').innerText = data.vaccinations || 0;
+            } catch (err) {
+                console.error("Stats load error", err);
+                // Optional: show error state in stats cards
+            }
+        }
+
+        loadStats();
         loadRecentActivity();
         // Optional: Auto refresh every 30 seconds
-        setInterval(loadRecentActivity, 30000);
+        setInterval(() => {
+            loadStats();
+            loadRecentActivity();
+        }, 30000);
 
     </script>
 </body>

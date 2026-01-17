@@ -217,18 +217,38 @@
 
         async function verifyOtp() {
             const userOtp = document.getElementById('otpInput').value;
-            // Loose equality check in case of string/number difference
+            const verifyBtn = document.getElementById('verifyBtn');
+            const originalText = verifyBtn.textContent;
+
             if (userOtp == serverOtp) {
-                // Success
-                document.getElementById('otpModal').classList.remove('active');
-                await registerUser(pendingFormData);
+                // UI Loading State
+                verifyBtn.textContent = 'Verifying & Creating Account...';
+                verifyBtn.disabled = true;
+                verifyBtn.style.opacity = '0.7';
+
+                try {
+                    await registerUser(pendingFormData);
+                    // If successful, registerUser handles redirect. 
+                    // If we are here, it might have finished or failed caught inside.
+                } catch (e) {
+                    alert('Registration Error: ' + e.message);
+                    resetVerifyBtn(verifyBtn, originalText);
+                }
             } else {
                 alert('❌ Invalid OTP. Please try again.');
             }
         }
 
+        function resetVerifyBtn(btn, text) {
+            btn.textContent = text;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+
         async function registerUser(formData) {
             const data = Object.fromEntries(formData.entries());
+            console.log("Attempting registration for:", data.email);
+
             try {
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
@@ -238,15 +258,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Force redirect to login page as requested
                     alert('✅ Account Verified & Created! \n\nPlease Login now.');
                     window.location.href = 'login.html';
                 } else {
-                    alert(result.error || 'Registration failed');
+                    throw new Error(result.error || 'Registration failed');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred during registration.');
+                console.error('Registration Fetch Error:', error);
+                throw error; // Re-throw to be caught by verifyOtp
             }
         }
     </script>

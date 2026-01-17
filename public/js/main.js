@@ -113,3 +113,7 @@ function initGlobalChatbot() {
         });
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    initGlobalChatbot();
+});
