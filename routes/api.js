@@ -46,7 +46,7 @@ router.post('/admin/announcement', async (req, res) => {
 // Nurse Approvals: List Pending
 router.get('/admin/nurse-requests', async (req, res) => {
     try {
-        const result = await db.query("SELECT id, name, email, phone, created_at FROM users WHERE role='nurse' AND status='pending'");
+        const result = await db.query("SELECT id, name, email, phone, trna_id, hospital_location, created_at FROM users WHERE role='nurse' AND status='pending'");
         res.json({ requests: result.rows });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -155,6 +155,84 @@ router.post('/patient/book', async (req, res) => {
     }
 });
 
+// Mark Vaccine as Compleleted (Nurse)
+router.post('/nurse/mark-complete/:id', async (req, res) => {
+    try {
+        await db.query("UPDATE vaccination_records SET status='completed' WHERE id=$1", [req.params.id]);
+        res.json({ message: "Vaccination marked as COMPLETED." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Certificate Details
+router.get('/patient/certificate/:recordId', async (req, res) => {
+    try {
+        const sql = `
+            SELECT u.name as patient_name, u.aadhaar, u.admit_id,
+                   v.name as vaccine_name, r.date_administered, h.name as hospital_name
+            FROM vaccination_records r
+            JOIN users u ON r.patient_id = u.id
+            JOIN vaccines v ON r.vaccine_id = v.id
+            JOIN hospitals h ON r.hospital_id = h.id
+            WHERE r.id = $1
+        `;
+        const result = await db.query(sql, [req.params.recordId]);
+        if (result.rows.length === 0) return res.status(404).json({ error: "Certificate not found" });
+
+        res.json({ certificate: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse: Issue Certificate (Update Status if not already - can also just use mark-complete)
+router.post('/nurse/issue-certificate', async (req, res) => {
+    const { recordId } = req.body;
+    try {
+        await db.query("UPDATE vaccination_records SET status='completed' WHERE id=$1", [recordId]);
+        res.json({ message: "Certificate issued (Status set to Completed)" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+try {
+    const sql = `
+            SELECT u.name as patient_name, u.aadhaar, u.admit_id,
+            v.name as vaccine_name, r.date_administered, h.name as hospital_name
+            FROM vaccination_records r
+            JOIN users u ON r.patient_id = u.id
+            JOIN vaccines v ON r.vaccine_id = v.id
+            JOIN hospitals h ON r.hospital_id = h.id
+            WHERE r.id = $1
+            `;
+    const result = await db.query(sql, [req.params.recordId]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Certificate not found" });
+
+    res.json({ certificate: result.rows[0] });
+} catch (err) {
+    res.status(500).json({ error: err.message });
+}
+});
+
+// Nurse: Issue Certificate (Update Status if not already - can also just use mark-complete)
+router.post('/nurse/issue-certificate', async (req, res) => {
+    const { recordId } = req.body;
+    try {
+        await db.query("UPDATE vaccination_records SET status='completed' WHERE id=$1", [recordId]);
+        res.json({ message: "Certificate issued (Status set to Completed)" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+await db.query(sql, [patientId, vaccineId, hospitalId, date]);
+res.json({ message: "Appointment booked successfully!" });
+    } catch (err) {
+    res.status(500).json({ error: err.message });
+}
+});
+
 // Admin: Get All Users
 router.get('/admin/users', async (req, res) => {
     try {
@@ -169,7 +247,7 @@ router.get('/admin/users', async (req, res) => {
 router.delete('/admin/user/:id', async (req, res) => {
     try {
         await db.query("DELETE FROM users WHERE id = $1", [req.params.id]);
-        await logAudit('Delete User', `User ID: ${req.params.id}`, 'Admin');
+        await logAudit('Delete User', `User ID: ${req.params.id} `, 'Admin');
         res.json({ message: "User deleted." });
     } catch (err) {
         res.status(500).json({ error: "Cannot delete user with associated records." });
@@ -199,7 +277,7 @@ router.get('/admin/recent-activity', async (req, res) => {
             JOIN users u ON a.patient_id = u.id
             LEFT JOIN vaccines v ON a.vaccine_id = v.id
             ORDER BY a.id DESC LIMIT 5
-        `);
+            `);
 
         res.json({
             registrations: usersRes.rows,
@@ -221,14 +299,14 @@ router.get('/admin/stats', async (req, res) => {
         const chartRes = await db.query(`
             SELECT TO_CHAR(date_administered, 'Mon') as month, COUNT(*) as count 
             FROM vaccination_records 
-            WHERE status='administered' 
+            WHERE status = 'administered' 
             GROUP BY TO_CHAR(date_administered, 'Mon'), EXTRACT(MONTH FROM date_administered)
             ORDER BY EXTRACT(MONTH FROM date_administered)
-        `);
+            `);
 
         // Chart Data: Gender Distribution
         const genderRes = await db.query(`
-            SELECT gender, COUNT(*) as count FROM users WHERE role='patient' GROUP BY gender
+            SELECT gender, COUNT(*) as count FROM users WHERE role = 'patient' GROUP BY gender
         `);
 
         res.json({
@@ -257,7 +335,7 @@ router.post('/stock/add', async (req, res) => {
     try {
         // Ensure hospital exists (if fallback)
         if (hospId === 1) {
-            await db.query(`INSERT INTO hospitals (id, name, location, approved_status) VALUES (1, 'City General', 'City', 1) ON CONFLICT (id) DO NOTHING`);
+            await db.query(`INSERT INTO hospitals(id, name, location, approved_status) VALUES(1, 'City General', 'City', 1) ON CONFLICT(id) DO NOTHING`);
         }
 
         // Find Vaccine ID
@@ -284,7 +362,7 @@ router.post('/stock/add', async (req, res) => {
             await db.query("INSERT INTO stock (hospital_id, vaccine_id, quantity) VALUES ($1, $2, $3)", [hospId, vaccineId, quantity]);
         }
 
-        await logAudit('Update Stock', `Added ${quantity} ${vaccineName} to Hospital ${hospId}`, 'Admin');
+        await logAudit('Update Stock', `Added ${quantity} ${vaccineName} to Hospital ${hospId} `, 'Admin');
         res.json({ message: "Stock updated successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -300,14 +378,14 @@ router.get('/nurse/search-patients', async (req, res) => {
         const sql = `
             SELECT id, name, email, phone, aadhaar, dob, gender, address 
             FROM users 
-            WHERE role = 'patient' AND (
+            WHERE role = 'patient' AND(
                 name ILIKE $1 OR 
                 email ILIKE $1 OR 
                 phone ILIKE $1 OR 
                 aadhaar ILIKE $1
             )
-        `;
-        const result = await db.query(sql, [`%${query}%`]);
+            `;
+        const result = await db.query(sql, [`% ${query}% `]);
         res.json({ patients: result.rows });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -385,16 +463,16 @@ router.get('/patient/:id/reminders', async (req, res) => {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             let status = 'upcoming';
-            let message = `Upcoming: ${v.name} due on ${dueDate.toLocaleDateString()}`;
+            let message = `Upcoming: ${v.name} due on ${dueDate.toLocaleDateString()} `;
             let alertLevel = 'info'; // info, warning, danger, success
 
             if (diffDays < 0) {
                 status = 'overdue';
-                message = `OVERDUE: You missed ${v.name}! Due was ${dueDate.toLocaleDateString()}`;
+                message = `OVERDUE: You missed ${v.name} !Due was ${dueDate.toLocaleDateString()} `;
                 alertLevel = 'danger';
             } else if (diffDays === 0) {
                 status = 'due';
-                message = `Due Today: Please get ${v.name}`;
+                message = `Due Today: Please get ${v.name} `;
                 alertLevel = 'success';
             } else if (diffDays <= 3) {
                 status = 'urgent';
@@ -465,7 +543,7 @@ router.get('/nurse/appointments', async (req, res) => {
             LEFT JOIN vaccines v ON a.vaccine_id = v.id
             WHERE a.appointment_date = $1
             ORDER BY a.appointment_time ASC
-        `;
+            `;
         const result = await db.query(sql, [date]);
         res.json({ appointments: result.rows });
     } catch (err) {
@@ -507,7 +585,7 @@ router.post('/admin/batch-reminders', async (req, res) => {
             // In real app: calculate due dates here.
             // We'll just simulate sending to 20% of users
             if (Math.random() > 0.8) {
-                console.log(`[Email Service] Sending reminder to ${u.email}`);
+                console.log(`[Email Service] Sending reminder to ${u.email} `);
                 count++;
             }
         });
@@ -562,7 +640,7 @@ router.get('/patient/:id/certificates', async (req, res) => {
             JOIN vaccines v ON r.vaccine_id = v.id
             JOIN hospitals h ON r.hospital_id = h.id
             WHERE r.patient_id = $1 AND r.certificate_issued = TRUE
-        `;
+            `;
         const result = await db.query(sql, [req.params.id]);
         res.json({ certificates: result.rows });
     } catch (err) {

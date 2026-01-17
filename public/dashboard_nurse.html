@@ -311,13 +311,23 @@
             if (appts.appointments) {
                 appts.appointments.forEach(a => {
                     const tr = document.createElement('tr');
+                    // admit_id from API
+                    const admitIdDisplay = a.admit_id ? `<span style="font-size:0.8rem; color:var(--primary); font-weight:600;">ID: ${a.admit_id}</span>` : '';
+
                     tr.innerHTML = `
                         <td>${a.appointment_time}</td>
-                        <td>${a.patient_name} <br> <small>${a.phone}</small></td>
-                        <td>${a.vaccine_name || 'General'}</td>
-                        <td>${a.status}</td>
                         <td>
-                            ${a.status === 'scheduled' ? `<button class="btn-outline" onclick="checkIn(${a.id})">Check In</button>` : '-'}
+                            ${a.patient_name} <br> 
+                            <small>${a.phone}</small><br>
+                            ${admitIdDisplay}
+                        </td>
+                        <td>${a.vaccine_name || 'General'}</td>
+                        <td><span class="status-badge ${a.status === 'completed' ? 'status-administered' : 'status-pending'}">${a.status}</span></td>
+                        <td>
+                            ${a.status === 'scheduled' ?
+                            `<button class="btn-outline" onclick="checkIn(${a.id})">Check In</button>` :
+                            (a.status === 'checked-in' ? `<button class="btn" onclick="markComplete(${a.id})">Mark Completed</button>` : '✅ Done')
+                        }
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -328,6 +338,19 @@
         async function checkIn(id) {
             await fetch(`/api/nurse/check-in/${id}`, { method: 'PUT' });
             loadDashboard(); // Refresh
+        }
+
+        async function markComplete(id) {
+            if (!confirm("Confirm vaccination completion?")) return;
+            try {
+                const res = await fetch(`/api/nurse/mark-complete/${id}`, { method: 'POST' });
+                if (res.ok) {
+                    alert("Vaccination Completed!");
+                    loadDashboard();
+                } else {
+                    alert("Error updating status.");
+                }
+            } catch (e) { console.error(e); }
         }
 
         // --- AUTOMATION ---

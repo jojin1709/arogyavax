@@ -27,15 +27,16 @@
     </header>
 
     <div class="dashboard-container">
-        <a href="#" class="sidebar-link active">📊 System Overview</a>
-        <a href="#" class="sidebar-link">🏥 Manage Hospitals</a>
-        <a href="#" class="sidebar-link">💉 Manage Slots</a>
-        <a href="#" class="sidebar-link">📊 Reports & Analytics</a>
-        <a href="#" class="sidebar-link">📦 Stock Management</a>
-        <a href="#" class="sidebar-link">📢 CMS / Announcements</a>
-        <a href="#" class="sidebar-link">👥 Manage Users</a>
-        <a href="#" class="sidebar-link">👩‍⚕️ Nurse Requests</a>
-        <a href="#" class="sidebar-link">📜 Audit Logs</a>
+        <aside class="sidebar">
+            <a href="#" class="sidebar-link active">📊 System Overview</a>
+            <a href="#" class="sidebar-link">🏥 Manage Hospitals</a>
+            <a href="#" class="sidebar-link">💉 Manage Slots</a>
+            <a href="#" class="sidebar-link">📊 Reports & Analytics</a>
+            <a href="#" class="sidebar-link">📦 Stock Management</a>
+            <a href="#" class="sidebar-link">📢 CMS / Announcements</a>
+            <a href="#" class="sidebar-link">👥 Manage Users</a>
+            <a href="#" class="sidebar-link">👩‍⚕️ Nurse Requests</a>
+            <a href="#" class="sidebar-link">📜 Audit Logs</a>
         </aside>
 
         <main class="main-content">
@@ -672,6 +673,78 @@
                 document.getElementById('recentBookingsList').innerHTML = `<li style="color:red">Error loading: ${e.message}</li>`;
             }
         }
+
+        // --- NURSE APPROVAL LOGIC ---
+        async function loadNurseRequests() {
+            const tbody = document.getElementById('nurseRequestsBody');
+            tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/admin/nurse-requests');
+                const data = await res.json();
+                tbody.innerHTML = '';
+                if (!data.requests || data.requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">No pending requests.</td></tr>';
+                    return;
+                }
+                data.requests.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.phone}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-outline" style="padding: 2px 8px; color: green; border-color: green; margin-right: 5px;" onclick="approveNurse(${u.id})">Approve</button>
+                            <button class="btn-outline" style="padding: 2px 8px; color: red; border-color: red;" onclick="rejectNurse(${u.id})">Reject</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="5">Error loading requests.</td></tr>'; }
+        }
+
+        async function approveNurse(id) {
+            if (!confirm("Approve this nurse?")) return;
+            try {
+                const res = await fetch(\`/api/admin/approve-nurse/\${id}\`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message);
+                loadNurseRequests();
+            } catch (e) { alert("Error approving nurse"); }
+        }
+
+        async function rejectNurse(id) {
+            if(!confirm("Reject and delete this request?")) return;
+            try {
+                const res = await fetch(\`/api/admin/reject-nurse/\${id}\`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message);
+                loadNurseRequests();
+            } catch (e) { alert("Error rejecting nurse"); }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                if (!res.ok) throw new Error('Failed to fetch stats');
+                const data = await res.json();
+
+                document.getElementById('patientCount').innerText = data.patients || 0;
+                document.getElementById('hospitalCount').innerText = data.hospitals || 0;
+                document.getElementById('vaxCount').innerText = data.vaccinations || 0;
+            } catch (err) {
+                console.error("Stats load error", err);
+                // Optional: show error state in stats cards
+            }
+        }
+
+        loadStats();
+        loadRecentActivity();
+        // Optional: Auto refresh every 30 seconds
+        setInterval(() => {
+            loadStats();
+            loadRecentActivity();
+        }, 30000);
 
         async function loadRecentActivity() {
             // ... (keep existing implementation) ...

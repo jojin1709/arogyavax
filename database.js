@@ -37,7 +37,13 @@ const initDB = async () => {
                 await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic TEXT");
                 // New: Add status column for approval workflow (default active)
                 await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active'");
-                console.log("Verified/Added profile_pic and status columns");
+                // New: Add Admit ID (for patients)
+                await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS admit_id VARCHAR(50)");
+                // New: Add TRNA ID and Location (for nurses)
+                await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS trna_id VARCHAR(50)");
+                await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS hospital_location VARCHAR(100)");
+
+                console.log("Verified/Added all user columns (profile_pic, status, admit_id, trna_id, hospital_location)");
             } catch (e) {
                 console.error('Migration Error (columns):', e.message);
             }

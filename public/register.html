@@ -66,6 +66,19 @@
                 <label for="aadhaar">Aadhaar Number (Optional)</label>
                 <input type="text" id="aadhaar" name="aadhaar">
             </div>
+
+            <!-- NURSE FIELDS (Hidden by default) -->
+            <div id="nurseFields" style="display: none;">
+                <div class="form-group">
+                    <label>TRNA ID</label>
+                    <input type="text" id="trna_id" name="trna_id" placeholder="Enter Nurse License ID">
+                </div>
+                <div class="form-group">
+                    <label>Hospital Location / Branch</label>
+                    <input type="text" id="hospital_location" name="hospital_location"
+                        placeholder="e.g. City General, Block A">
+                </div>
+            </div>
             <button type="submit" class="btn" style="width: 100%">Register</button>
         </form>
         <div class="auth-footer">
@@ -111,13 +124,16 @@
             document.getElementById('role').value = role;
             const pBtn = document.getElementById('rolePatientBtn');
             const nBtn = document.getElementById('roleNurseBtn');
+            const nurseFields = document.getElementById('nurseFields');
 
             if (role === 'patient') {
                 pBtn.className = 'btn active-role';
                 nBtn.className = 'btn-outline';
+                nurseFields.style.display = 'none';
             } else {
                 nBtn.className = 'btn active-role';
                 pBtn.className = 'btn-outline';
+                nurseFields.style.display = 'block';
             }
         }
     </script>
