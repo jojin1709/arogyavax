@@ -32,10 +32,13 @@ const initDB = async () => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`);
 
-            // Migration for existing tables
+            // Migration: Add profile_pic to users if not exists
             try {
                 await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic TEXT");
-            } catch (e) { console.log('Migration Note:', e.message); }
+                console.log("Verified/Added profile_pic column");
+            } catch (e) {
+                console.error('Migration Error (profile_pic):', e.message);
+            }
 
             // Seed Admin User (admin@admin.com / admin)
             // Hash for 'admin' is $2b$10$YourHashHere... but for simplicity in this script we can insert directly or use valid hash.
