@@ -27,7 +27,8 @@
     </header>
 
     <div class="auth-container" style="display: flex; flex-direction: column; align-items: center;">
-        <img src="images/login.png" alt="Secure Login" style="width: 150px; margin-bottom: 1rem; border-radius: 50%;">
+        <img id="loginAvatar" src="images/login.png" alt="Secure Login"
+            style="width: 150px; margin-bottom: 1rem; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
         <div style="text-align: center; margin-bottom: 2rem;">
             <h3>Login</h3>
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
@@ -58,12 +59,18 @@
         function switchLoginType(type) {
             const uBtn = document.getElementById('loginTypeUser');
             const nBtn = document.getElementById('loginTypeNurse');
+            const avatar = document.getElementById('loginAvatar');
+
             if (type === 'user') {
                 uBtn.className = 'btn';
                 nBtn.className = 'btn-outline';
+                avatar.src = "images/login.png";
             } else {
                 nBtn.className = 'btn';
                 uBtn.className = 'btn-outline';
+                // Using a placeholder or assuming file exists. 
+                // Since I haven't seen nurse_login.png, I'll try to find one or use a public URL fallback.
+                avatar.src = "https://cdn-icons-png.flaticon.com/512/4228/4228704.png";
             }
         }
 

@@ -14,8 +14,9 @@ router.post('/register', async (req, res) => {
     try {
         const hash = await bcrypt.hash(password, 10);
 
-        const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
-        const params = [name, email, hash, role, phone, aadhaar];
+        // Include profile_pic (default to null if not provided)
+        const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar, profile_pic) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`;
+        const params = [name, email, hash, role, phone, aadhaar, req.body.profile_pic || null];
 
         const result = await db.query(sql, params);
         res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
