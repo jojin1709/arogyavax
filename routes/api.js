@@ -225,6 +225,21 @@ router.delete('/admin/user/:id', async (req, res) => {
     }
 });
 
+// Admin: Update User Role
+router.put('/admin/user/:id', async (req, res) => {
+    const { role } = req.body;
+    try {
+        if (!['admin', 'nurse', 'patient'].includes(role)) {
+            return res.status(400).json({ error: "Invalid role" });
+        }
+        await User.findByIdAndUpdate(req.params.id, { role });
+        await logAudit('Update User Role', `User ID: ${req.params.id} changed to ${role}`, 'Admin');
+        res.json({ message: "User role updated successfully." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Vaccines List
 router.get('/vaccines', async (req, res) => {
     try {
