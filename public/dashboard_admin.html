@@ -627,6 +627,26 @@
             } catch (e) { alert("Delete failed"); }
         }
 
+        async function loadVaccinesForStock() {
+            const select = document.getElementById('vaccineNameStock');
+            select.innerHTML = '<option>Loading...</option>';
+            try {
+                const res = await fetch('/api/vaccines');
+                const data = await res.json();
+                select.innerHTML = '';
+                if (data.vaccines && data.vaccines.length > 0) {
+                    data.vaccines.forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v.name;
+                        opt.textContent = v.name;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    select.innerHTML = '<option>No vaccines found</option>';
+                }
+            } catch (e) { console.error(e); select.innerHTML = '<option>Error loading</option>'; }
+        }
+
         // --- NAVIGATION LOGIC ---
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -647,7 +667,7 @@
                 document.getElementById('stock-section').style.display = 'none';
                 document.getElementById('users-section').style.display = 'none';
                 document.getElementById('nurse-requests-section').style.display = 'none';
-                document.getElementById('audit-section').style.display = 'none'; // Fix: Hide Audit Section
+                document.getElementById('audit-section').style.display = 'none';
 
                 // Show target
                 const text = e.target.textContent.trim();
@@ -658,7 +678,7 @@
                 }
                 else if (text.includes('Slots')) {
                     document.getElementById('slots-section').style.display = 'block';
-                    loadStockOptions(); // Assuming this is for slots management
+                    loadStockOptions();
                 }
                 else if (text.includes('CMS')) document.getElementById('cms-section').style.display = 'block';
                 else if (text.includes('Reports')) {
@@ -668,6 +688,7 @@
                 else if (text.includes('Stock')) {
                     document.getElementById('stock-section').style.display = 'block';
                     loadStock();
+                    loadVaccinesForStock(); // Load vaccines for dropdown
                 }
                 else if (text.includes('Users')) {
                     document.getElementById('users-section').style.display = 'block';

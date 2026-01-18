@@ -380,6 +380,26 @@ router.post('/stock/add', async (req, res) => {
     }
 });
 
+// Get Stock List
+router.get('/stock', async (req, res) => {
+    try {
+        const stock = await Stock.find()
+            .populate('vaccine_id', 'name')
+            .populate('hospital_id', 'name');
+
+        const formattedStock = stock.map(s => ({
+            id: s._id,
+            vaccine_name: s.vaccine_id?.name || 'Unknown',
+            hospital_name: s.hospital_id?.name || 'Unknown',
+            quantity: s.quantity
+        }));
+
+        res.json({ stock: formattedStock });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Nurse: Search Patients
 router.get('/nurse/search-patients', async (req, res) => {
     const { query } = req.query;
