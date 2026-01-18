@@ -480,7 +480,8 @@
                     e.target.reset();
                     loadStock();
                 } else {
-                    alert('Failed to add stock');
+                    const err = await res.json();
+                    alert('Failed to add stock: ' + (err.error || 'Unknown error'));
                 }
             } catch (err) {
                 console.error(err);

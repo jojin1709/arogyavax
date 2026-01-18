@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const stockSchema = new mongoose.Schema({
     hospital_id: { type: mongoose.Schema.Types.Mixed, ref: 'Hospital', required: true },
     vaccine_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Vaccine', required: true },
-    quantity: { type: Number, default: 0 }
+    quantity: { type: Number, default: 0 },
+    last_updated: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Stock', stockSchema);
