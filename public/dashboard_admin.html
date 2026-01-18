@@ -8,6 +8,18 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Fix Table Contrast in Dark Mode */
+        th {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            color: var(--text-main) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -596,7 +608,8 @@
                 document.getElementById('reports-section').style.display = 'none';
                 document.getElementById('stock-section').style.display = 'none';
                 document.getElementById('users-section').style.display = 'none';
-                document.getElementById('nurse-requests-section').style.display = 'none'; // Hide Nurse Section by default
+                document.getElementById('nurse-requests-section').style.display = 'none';
+                document.getElementById('audit-section').style.display = 'none'; // Fix: Hide Audit Section
 
                 // Show target
                 const text = e.target.textContent.trim();
@@ -640,7 +653,7 @@
                 const data = await res.json();
                 tbody.innerHTML = '';
                 if (!data.logs || data.logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4">No logs found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 1rem;">No logs found. Perform some actions to generate logs!</td></tr>';
                     return;
                 }
                 data.logs.forEach(log => {

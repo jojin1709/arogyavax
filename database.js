@@ -9,7 +9,7 @@ const Hospital = require('./models/Hospital');
 require('./models/VaccinationRecord');
 require('./models/Stock');
 require('./models/Appointment');
-require('./models/AuditLog');
+const AuditLog = require('./models/AuditLog');
 require('./models/Announcement');
 
 const mongoURI = process.env.MONGO_URI;
@@ -52,6 +52,18 @@ const initDB = async () => {
             },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
+
+        // Seed Initial Audit Log
+        const logCount = await AuditLog.countDocuments();
+        if (logCount === 0) {
+            console.log('[DB] Seeding initial audit log...');
+            await new AuditLog({
+                action: 'SYSTEM_INIT',
+                details: 'System initialized and admin verified.',
+                performed_by: 'System',
+                created_at: new Date()
+            }).save();
+        }
 
         // Seed Vaccines
         const vaccinesCount = await Vaccine.countDocuments();
