@@ -295,7 +295,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Quantity (Doses)</label>
-                                <input type="number" id="stockQuantity" min="1" required
+                                <input type="number" id="addStockQuantity" min="1" required
                                     style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
                             </div>
                             <button type="submit" class="btn" style="width: 100%;">update Stock</button>
@@ -467,7 +467,7 @@
         document.getElementById('addStockForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const vaccineName = document.getElementById('vaccineNameStock').value;
-            const quantity = document.getElementById('stockQuantity').value;
+            const quantity = document.getElementById('addStockQuantity').value;
 
             try {
                 const res = await fetch('/api/stock/add', {
