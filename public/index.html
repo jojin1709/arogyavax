@@ -79,36 +79,148 @@
         </div>
     </section>
 
-    <!-- Learn About Vaccines Section -->
     <section id="learn-section" style="padding: 4rem 2rem; background: var(--bg-card);">
         <div class="section-title">
             <h2 data-i18n="learn_title">Learn About Vaccines</h2>
             <p data-i18n="learn_subtitle">Understand the vaccines that protect your child.</p>
         </div>
-        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-            <div class="feature-card">
-                <div class="feature-icon">💧</div>
-                <h3>OPV (Polio)</h3>
-                <p data-i18n="desc_polio">Oral Polio Vaccine primarily protects against the poliovirus, which can cause
-                    paralysis.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💉</div>
-                <h3>Covaxin / Covishield</h3>
-                <p data-i18n="desc_covid">Vaccines designed to protect against COVID-19 and its severe complications.
-                </p>
-            </div>
+        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+
+            <!-- BCG -->
             <div class="feature-card">
                 <div class="feature-icon">🛡️</div>
                 <h3>BCG</h3>
-                <p data-i18n="desc_bcg">Bacille Calmette-Guerin vaccine is primarily used against tuberculosis (TB).</p>
+                <p><strong>Protection against:</strong> Tuberculosis (TB)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> At Birth
+                </p>
             </div>
+
+            <!-- Hepatitis B -->
             <div class="feature-card">
                 <div class="feature-icon">🩸</div>
                 <h3>Hepatitis B</h3>
-                <p data-i18n="desc_hepb">Recommended for all infants at birth to protect against Hepatitis B virus
-                    infection.</p>
+                <p><strong>Protection against:</strong> Hepatitis B virus (Liver infection)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> Birth, 6
+                    weeks, 10 weeks, 14 weeks</p>
             </div>
+
+            <!-- OPV / IPV -->
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3>OPV / IPV (Polio)</h3>
+                <p><strong>Protection against:</strong> Poliovirus (Paralysis)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> Birth, 6,
+                    10, 14 weeks, Boosters at 16-18 months & 4-6 years</p>
+            </div>
+
+            <!-- DTwP / DTaP -->
+            <div class="feature-card">
+                <div class="feature-icon">💉</div>
+                <h3>DTwP / DTaP</h3>
+                <p><strong>Protection against:</strong> Diphtheria, Tetanus, and Pertussis (Whooping Cough)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6, 10, 14
+                    weeks, Boosters at 16-18 months & 4-6 years</p>
+            </div>
+
+            <!-- Hib -->
+            <div class="feature-card">
+                <div class="feature-icon">🦠</div>
+                <h3>Hib</h3>
+                <p><strong>Protection against:</strong> Haemophilus influenzae type b (Meningitis, Pneumonia)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6, 10, 14
+                    weeks, Booster at 16-18 months</p>
+            </div>
+
+            <!-- Rotavirus -->
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Rotavirus</h3>
+                <p><strong>Protection against:</strong> Rotavirus Diarrhea</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6, 10, 14
+                    weeks</p>
+            </div>
+
+            <!-- PCV -->
+            <div class="feature-card">
+                <div class="feature-icon">🫁</div>
+                <h3>PCV</h3>
+                <p><strong>Protection against:</strong> Pneumococcal diseases (Pneumonia)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6, 10, 14
+                    weeks, Booster at 15 months</p>
+            </div>
+
+            <!-- Influenza -->
+            <div class="feature-card">
+                <div class="feature-icon">🌬️</div>
+                <h3>Influenza (Flu)</h3>
+                <p><strong>Protection against:</strong> Seasonal Influenza virus</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6 months,
+                    7 months, then Annually for 5 years</p>
+            </div>
+
+            <!-- Typhoid -->
+            <div class="feature-card">
+                <div class="feature-icon">🥣</div>
+                <h3>Typhoid</h3>
+                <p><strong>Protection against:</strong> Typhoid Fever</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 6-9 months
+                </p>
+            </div>
+
+            <!-- MMR -->
+            <div class="feature-card">
+                <div class="feature-icon">🤒</div>
+                <h3>MMR</h3>
+                <p><strong>Protection against:</strong> Measles, Mumps, and Rubella</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 9 months,
+                    15 months, Booster at 4-6 years</p>
+            </div>
+
+            <!-- Hepatitis A -->
+            <div class="feature-card">
+                <div class="feature-icon">🅰️</div>
+                <h3>Hepatitis A</h3>
+                <p><strong>Protection against:</strong> Hepatitis A (Liver disease)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 12 months,
+                    18-19 months</p>
+            </div>
+
+            <!-- Varicella -->
+            <div class="feature-card">
+                <div class="feature-icon">🐔</div>
+                <h3>Varicella</h3>
+                <p><strong>Protection against:</strong> Chickenpox</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 15 months,
+                    18-19 months</p>
+            </div>
+
+            <!-- JE -->
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Japanese Encephalitis (JE)</h3>
+                <p><strong>Protection against:</strong> Brain infection caused by JE virus</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 12 months,
+                    13 months</p>
+            </div>
+
+            <!-- Tdap -->
+            <div class="feature-card">
+                <div class="feature-icon">💉</div>
+                <h3>Tdap</h3>
+                <p><strong>Protection against:</strong> Tetanus, Diphtheria, Pertussis (Adolescent Booster)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 10-12
+                    years</p>
+            </div>
+
+            <!-- HPV -->
+            <div class="feature-card">
+                <div class="feature-icon">🎗️</div>
+                <h3>HPV</h3>
+                <p><strong>Protection against:</strong> Human Papillomavirus (Cervical Cancer)</p>
+                <p style="margin-top:0.5rem; font-size:0.9rem; color: var(--primary);"><strong>When:</strong> 10-12
+                    years</p>
+            </div>
+
         </div>
     </section>
 
