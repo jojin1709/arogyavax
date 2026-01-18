@@ -53,6 +53,25 @@ const initDB = async () => {
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
+        // Seed Nurse - Force Update/Upsert
+        const nurseEmail = 'nurse@nurse.com';
+        console.log('[DB] Ensuring Nurse User exists...');
+        const nurseHash = await bcrypt.hash('nurse', 10);
+
+        await User.findOneAndUpdate(
+            { email: nurseEmail },
+            {
+                name: 'Head Nurse',
+                email: nurseEmail,
+                password: nurseHash,
+                role: 'nurse',
+                status: 'active', // Auto-approve this default nurse
+                phone: '1234567890',
+                hospital_location: 'City General Hospital'
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
         // Seed Initial Audit Log
         const logCount = await AuditLog.countDocuments();
         if (logCount === 0) {
