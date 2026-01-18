@@ -787,5 +787,34 @@ router.get('/patient/:id/certificates', async (req, res) => {
     }
 });
 
+// --- ADMIN: NURSE APPROVAL ---
+router.get('/admin/nurse-requests', async (req, res) => {
+    try {
+        const requests = await User.find({ role: 'nurse', status: 'pending' }).sort({ created_at: -1 });
+        res.json({ requests });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/admin/nurse-request/:id', async (req, res) => {
+    const { action } = req.body; // 'approve' or 'reject'
+    try {
+        if (action === 'approve') {
+            await User.findByIdAndUpdate(req.params.id, { status: 'active' });
+            await logAudit('Approve Nurse', `Admin approved nurse ${req.params.id}`, 'Admin');
+            res.json({ message: "Nurse approved successfully" });
+        } else if (action === 'reject') {
+            await User.findByIdAndDelete(req.params.id);
+            await logAudit('Reject Nurse', `Admin rejected nurse ${req.params.id}`, 'Admin');
+            res.json({ message: "Nurse request rejected" });
+        } else {
+            res.status(400).json({ error: "Invalid action" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
 

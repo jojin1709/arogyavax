@@ -802,25 +802,51 @@
                 const res = await fetch('/api/admin/nurse-requests');
                 const data = await res.json();
                 tbody.innerHTML = '';
+
                 if (!data.requests || data.requests.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">No pending requests.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5">No pending nurse requests.</td></tr>';
                     return;
                 }
-                data.requests.forEach(u => {
+
+                data.requests.forEach(n => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${u.name}</td>
-                        <td>${u.email}</td>
-                        <td>${u.phone}</td>
-                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>${n.name}</td>
+                        <td>${n.email}</td>
+                        <td>${n.phone || 'N/A'}</td>
+                        <td>${new Date(n.created_at).toLocaleDateString()}</td>
                         <td>
-                            <button class="btn-outline" style="padding: 2px 8px; color: green; border-color: green; margin-right: 5px;" onclick="approveNurse(${u.id})">Approve</button>
-                            <button class="btn-outline" style="padding: 2px 8px; color: red; border-color: red;" onclick="rejectNurse(${u.id})">Reject</button>
+                            <button class="btn" style="padding: 2px 8px; font-size: 0.8rem; background: var(--success);" onclick="updateNurseStatus('${n._id}', 'approve')">Approve</button>
+                            <button class="btn-outline" style="padding: 2px 8px; font-size: 0.8rem; border-color: red; color: red;" onclick="updateNurseStatus('${n._id}', 'reject')">Reject</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="5">Error loading requests.</td></tr>'; }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5">Error loading requests.</td></tr>';
+            }
+        }
+
+        async function updateNurseStatus(id, action) {
+            if (!confirm(`Are you sure you want to ${action} this nurse?`)) return;
+            try {
+                const res = await fetch(`/api/admin/nurse-request/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    loadNurseRequests();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed');
+            }
+        }
         }
 
         async function approveNurse(id) {

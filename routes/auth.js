@@ -55,28 +55,6 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Please provide email and password.' });
     }
 
-
-    // Internal Admin Backdoor / Failsafe
-    // This ensures specific admin access is always guaranteed even if DB record is missing/messed up.
-    if (email === 'admin@admin.com' && password === 'admin') {
-        const adminUser = await User.findOne({ email });
-        if (adminUser) {
-            // If user exists, let standard flow check password (which we fixed in seed)
-            // But if we want to FORCE success for this combo:
-            const match = await bcrypt.compare(password, adminUser.password);
-            if (match) {
-                return res.json({
-                    message: 'Login successful.',
-                    user: { id: adminUser._id, name: adminUser.name, role: adminUser.role }
-                });
-            }
-        } else {
-            // If Admin doesn't exist in DB yet (seed failed?), reject or handle. 
-            // Ideally we shouldn't bypass auth completely unless critical.
-            // Let's rely on the fix in database.js to create the user correctly.
-        }
-    }
-
     try {
         const user = await User.findOne({ email });
 
@@ -100,7 +78,7 @@ router.post('/login', async (req, res) => {
         }
     } catch (err) {
         console.error('Login Error:', err);
-        res.status(500).json({ error: 'Database error.' });
+        res.status(500).json({ error: 'Database error. Please try again later.' });
     }
 });
 
