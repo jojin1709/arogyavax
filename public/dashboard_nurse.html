@@ -145,9 +145,15 @@
                 <h2>Administer Vaccine</h2>
                 <div class="auth-container" style="margin: 0; max-width: 600px;">
                     <form id="administerForm">
-                        <div class="form-group">
-                            <label>Patient Phone Number / Aadhaar</label>
-                            <input type="text" id="patientIdentifier" placeholder="Enter identifier" required>
+                        <div class="form-group" style="position:relative;">
+                            <label>Baby Name / Phone / Aadhaar</label>
+                            <input type="text" id="patientIdentifier" placeholder="Type to search patient..."
+                                autocomplete="off" required>
+                            <input type="hidden" id="administerPatientId">
+                            <div id="administerSearchResults"
+                                style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg-card); border:1px solid var(--border-color); z-index:10; max-height:200px; overflow-y:auto; border-radius:0 0 8px 8px; box-shadow:var(--shadow);">
+                                <!-- Results populated by JS -->
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Select Vaccine</label>
@@ -458,24 +464,84 @@
         function printSchedule() { window.print(); }
 
         // --- ADMINISTER --- (Existing logic)
+        // --- ADMINISTER SEARCH & SUBMIT ---       
+        const adminInput = document.getElementById('patientIdentifier');
+        const adminResults = document.getElementById('administerSearchResults');
+        const adminHiddenId = document.getElementById('administerPatientId');
+        let searchTimeout = null;
+
+        adminInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            adminHiddenId.value = ''; // Reset ID on type
+
+            if (searchTimeout) clearTimeout(searchTimeout);
+            if (query.length < 2) {
+                adminResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/nurse/search-patients?query=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+
+                    adminResults.innerHTML = '';
+                    if (data.patients && data.patients.length > 0) {
+                        data.patients.forEach(p => {
+                            const div = document.createElement('div');
+                            div.style.padding = '10px';
+                            div.style.cursor = 'pointer';
+                            div.style.borderBottom = '1px solid var(--border-color)';
+                            div.innerHTML = `<strong>${p.name}</strong> <small style="color:var(--gray)">(${p.phone || 'No Phone'})</small>`;
+
+                            div.onclick = () => {
+                                adminInput.value = `${p.name} (${p.phone})`;
+                                adminHiddenId.value = p.id;
+                                adminResults.style.display = 'none';
+                            };
+                            adminResults.appendChild(div);
+                        });
+                        adminResults.style.display = 'block';
+                    } else {
+                        adminResults.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error("Search Error", e);
+                }
+            }, 300);
+        });
+
+        // Hide results on click outside
+        document.addEventListener('click', (e) => {
+            if (!adminInput.contains(e.target) && !adminResults.contains(e.target)) {
+                adminResults.style.display = 'none';
+            }
+        });
+
         document.getElementById('administerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const identifier = document.getElementById('patientIdentifier').value;
+            const identifier = adminInput.value;
+            const patientId = adminHiddenId.value;
+
             const vaccineSelect = document.getElementById('vaccineSelect');
             const vaccineId = vaccineSelect.value;
-            const vaccineName = vaccineSelect.options[vaccineSelect.selectedIndex].text;
 
             try {
+                // If we selected from dropdown, we send patientId
+                // If we just typed a phone/aadhaar, we send identifier
+                const payload = patientId ? { patientId, vaccineId } : { identifier, vaccineId };
+
                 const res = await fetch('/api/record-vaccine', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, vaccineId, vaccineName })
+                    body: JSON.stringify(payload)
                 });
                 const result = await res.json();
 
                 if (res.ok) {
                     alert(`✅ Success: ${result.message} for ${result.patient}`);
                     document.getElementById('administerForm').reset();
+                    adminHiddenId.value = '';
                 } else {
                     alert(`❌ Error: ${result.error}`);
                 }
