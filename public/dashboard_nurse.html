@@ -503,7 +503,7 @@
 
                             div.onclick = () => {
                                 adminInput.value = `${p.name} (${p.phone})`;
-                                adminHiddenId.value = p.id;
+                                adminHiddenId.value = p._id;
                                 adminResults.style.display = 'none';
                             };
                             adminResults.appendChild(div);
@@ -569,7 +569,7 @@
             data.patients.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'card'; div.style.padding = '10px'; div.style.marginBottom = '10px'; div.style.border = '1px solid #ccc';
-                div.innerHTML = `<p><strong>${p.name}</strong> - ${p.phone || 'No Phone'}</p><button class="btn-outline" onclick="editPatient('${p.id}')">Manage</button>`;
+                div.innerHTML = `<p><strong>${p.name}</strong> - ${p.phone || 'No Phone'}</p><button class="btn-outline" onclick="editPatient('${p._id}')">Manage</button>`;
                 resultsDiv.appendChild(div);
             });
         }
@@ -601,7 +601,7 @@
             const data = await res.json();
             const p = data.patient;
             document.getElementById('patientEditor').style.display = 'block';
-            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-id').value = p._id;
             document.getElementById('edit-name').value = p.name;
             document.getElementById('edit-phone').value = p.phone || '';
             document.getElementById('edit-aadhaar').value = p.aadhaar || '';
