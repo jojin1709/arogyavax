@@ -394,13 +394,13 @@
                         <td style="font-size:0.9rem;">
                             ${a.nurse_name ?
                             `<strong>${a.nurse_name}</strong><br><small style="color:var(--primary)">Assigned</small>` :
-                            `<button class="btn-outline" style="padding:2px 8px; font-size:0.8rem;" onclick="assignMe('${a.id}')">Assign Me</button>`
+                            `<button class="btn-outline" style="padding:2px 8px; font-size:0.8rem;" onclick="assignMe('${a._id}')">Assign Me</button>`
                         }
                         </td>
                         <td><span class="status-badge ${a.status === 'completed' ? 'status-administered' : 'status-pending'}">${a.status}</span></td>
                         <td>
                             ${a.status === 'scheduled' || a.status === 'checked-in' ?
-                            `<button class="btn" style="padding:5px 10px; font-size:0.8rem;" onclick="markComplete('${a.id}')">Start Duty</button>` :
+                            `<button class="btn" style="padding:5px 10px; font-size:0.8rem;" onclick="markComplete('${a._id}')">Start Duty</button>` :
                             '✅ Done'
                         }
                         </td>
@@ -426,6 +426,26 @@
                     alert("Error updating status.");
                 }
             } catch (e) { console.error(e); }
+        }
+
+        async function assignMe(appointmentId) {
+            try {
+                const res = await fetch('/api/nurse/assign-to-appointment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appointmentId, nurseId: user._id, nurseName: user.name })
+                });
+                if (res.ok) {
+                    alert('Assigned successfully! ✅');
+                    loadDashboard();
+                } else {
+                    const data = await res.json();
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Request failed');
+            }
         }
 
         // --- AUTOMATION ---
@@ -622,7 +642,7 @@
                     </td>
                     <td>
                         <button class="btn" style="padding:2px 5px; font-size:0.8rem;" onclick="openCertificate('${p.name}', '${v.vaccine_name}', '${v.date_administered}')">View</button>
-                        <button class="btn-outline" style="padding:2px 5px; font-size:0.8rem;" onclick="issueCertificate(${v.id})">Issue</button>
+                        <button class="btn-outline" style="padding:2px 5px; font-size:0.8rem;" onclick="issueCertificate('${v._id}')">Issue</button>
                     </td>`;
                 tbody.appendChild(tr);
             });

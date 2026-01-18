@@ -38,6 +38,7 @@
             <a href="#" class="sidebar-link">📅 My Schedule</a>
             <a href="#book" class="sidebar-link">🏥 Book Appointment</a>
             <a href="#" class="sidebar-link">📁 History</a>
+            <a href="#" class="sidebar-link">📜 Certificates</a>
             <a href="#" class="sidebar-link">⚙️ Settings</a>
         </aside>
 
@@ -48,11 +49,6 @@
                 <!-- Reminders Section -->
                 <div id="reminders-container" style="margin-bottom: 2rem;"></div>
 
-                <div id="certificates-container"
-                    style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 2rem; display: none;">
-                    <h3 style="color: var(--primary); margin-bottom: 1rem;">📜 My Immunization Certificates</h3>
-                    <ul id="certList" style="list-style: none;"></ul>
-                </div>
 
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -138,22 +134,22 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Mock Data -->
-                            <tr>
-                                <td>BCG</td>
-                                <td>2021-05-20</td>
-                                <td>City General Hospital</td>
-                                <td><span class="status-badge status-administered">Administered</span></td>
-                            </tr>
-                            <tr>
-                                <td>Hepatitis B</td>
-                                <td>2021-06-20</td>
-                                <td>City General Hospital</td>
-                                <td><span class="status-badge status-administered">Administered</span></td>
-                            </tr>
+                        <tbody id="historyTableBody">
+                            <!-- Populated by JS -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Certificates Section -->
+            <div id="certificate-section" style="margin-top: 2rem; display: none;">
+                <h3>My Vaccination Certificates</h3>
+                <br>
+                <div id="cert-list-container" class="card"
+                    style="padding: 1.5rem; background: var(--bg-card); border-radius: 8px; box-shadow: var(--shadow);">
+                    <ul id="certList" style="list-style: none; padding: 0;">
+                        <!-- Populated by JS -->
+                    </ul>
                 </div>
             </div>
 
@@ -219,6 +215,7 @@
                 if (text.includes('Schedule')) targetId = 'overview-section';
                 if (text.includes('Book')) targetId = 'booking-section';
                 if (text.includes('History')) targetId = 'history-section';
+                if (text.includes('Certificates')) targetId = 'certificate-section';
                 if (text.includes('Settings')) targetId = 'settings-section';
 
                 if (targetId) {
@@ -245,7 +242,7 @@
                     vaccineSelect.innerHTML = '<option value="" disabled selected>Select a Vaccine</option>';
                     vData.vaccines.forEach(v => {
                         const opt = document.createElement('option');
-                        opt.value = v.id;
+                        opt.value = v._id;
                         opt.textContent = v.name;
                         vaccineSelect.appendChild(opt);
                     });
@@ -257,7 +254,7 @@
                     hospitalSelect.innerHTML = '<option value="" disabled selected>Select a Hospital</option>';
                     hData.hospitals.forEach(h => {
                         const opt = document.createElement('option');
-                        opt.value = h.id;
+                        opt.value = h._id;
                         opt.textContent = h.name + " (" + h.location + ")";
                         hospitalSelect.appendChild(opt);
                     });
@@ -280,7 +277,7 @@
                     const res = await fetch('/api/patient/book', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ patientId: user.id, vaccineId, hospitalId, date, time })
+                        body: JSON.stringify({ patientId: user._id, vaccineId, hospitalId, date, time })
                     });
                     const data = await res.json();
                     if (res.ok) {
@@ -336,7 +333,7 @@
                     const res = await fetch('/api/auth/update-profile', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: user.id, name, phone, password, profile_pic: finalImage })
+                        body: JSON.stringify({ id: user._id, name, phone, password, profile_pic: finalImage })
                     });
                     const data = await res.json();
                     if (res.ok) {
@@ -356,12 +353,12 @@
         // Real Data load
         async function loadData() {
             const tbody = document.getElementById('scheduleTable');
-            const historyBody = document.querySelector('#history-section tbody');
+            const historyBody = document.getElementById('historyTableBody');
 
             if (tbody) tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
 
             try {
-                const res = await fetch(`/api/user/${user.id}/history`);
+                const res = await fetch(`/api/user/${user._id}/history`);
                 const data = await res.json();
 
                 if (tbody) tbody.innerHTML = '';
@@ -401,7 +398,7 @@
                     });
                 }
 
-                const remindersRes = await fetch(`/api/patient/${user.id}/reminders`);
+                const remindersRes = await fetch(`/api/patient/${user._id}/reminders`);
                 const remindersData = await remindersRes.json();
                 const remindersContainer = document.getElementById('reminders-container');
 
@@ -452,14 +449,13 @@
             }
 
             try {
-                const certRes = await fetch(`/api/patient/${user.id}/certificates`);
+                const certRes = await fetch(`/api/patient/${user._id}/certificates`);
                 const certData = await certRes.json();
-                const certContainer = document.getElementById('certificates-container');
                 const certList = document.getElementById('certList');
+                if (!certList) return;
                 certList.innerHTML = '';
 
                 if (certData.certificates && certData.certificates.length > 0) {
-                    certContainer.style.display = 'block';
                     certData.certificates.forEach(c => {
                         const li = document.createElement('li');
                         li.style.cssText = 'padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;';

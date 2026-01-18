@@ -686,7 +686,7 @@ router.get('/nurse/appointments', async (req, res) => {
             .sort({ appointment_time: 1 });
 
         const formatted = appointments.map(a => ({
-            id: a._id,
+            _id: a._id,
             appointment_time: a.appointment_time,
             status: a.status,
             patient_name: a.patient_id?.name,
