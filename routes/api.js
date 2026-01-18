@@ -435,19 +435,24 @@ router.get('/stock', async (req, res) => {
 // Nurse: Search Patients
 router.get('/nurse/search-patients', async (req, res) => {
     const { query } = req.query;
-    if (!query) return res.json({ patients: [] });
 
     try {
-        const regex = new RegExp(query, 'i');
-        const patients = await User.find({
-            role: 'patient',
-            $or: [
+        let filter = { role: 'patient' };
+        if (query) {
+            const regex = new RegExp(query, 'i');
+            filter.$or = [
                 { name: regex },
                 { email: regex },
                 { phone: regex },
                 { aadhaar: regex }
-            ]
-        }).select('id name email phone aadhaar dob gender address');
+            ];
+        }
+
+        const patients = await User.find(filter)
+            .sort({ created_at: -1 })
+            .limit(20) // Limit to 20 for initial load
+            .select('id name email phone aadhaar dob gender address');
+
         res.json({ patients });
     } catch (err) {
         res.status(500).json({ error: err.message });
