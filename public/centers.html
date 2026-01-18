@@ -125,6 +125,51 @@
     <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script>
+        async function loadCenters() {
+            const container = document.getElementById('centers-list');
+            container.innerHTML = '<p style="text-align:center;">Loading centers...</p>';
+
+            try {
+                const res = await fetch('/api/hospitals'); // Use the new public endpoint
+                const data = await res.json();
+
+                container.innerHTML = '';
+
+                if (!data.hospitals || data.hospitals.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;">No centers found.</p>';
+                    return;
+                }
+
+                data.hospitals.forEach(h => {
+                    // Random mock slots for demo purposes since we don't have a robust slot system per hospital per day yet
+                    const slots = Math.floor(Math.random() * 50) + 5;
+                    const slotColor = slots > 20 ? 'green' : 'orange';
+
+                    const div = document.createElement('div');
+                    div.className = 'center-card';
+                    div.innerHTML = `
+                        <div class="center-info">
+                            <h3>${h.name}</h3>
+                            <p>📍 ${h.location || 'Location not specified'}</p>
+                            <p style="margin-top: 0.5rem;">
+                                Available: <span class="tag">Covishield</span> <span class="tag">Covaxin</span> <span class="tag">Polio</span>
+                            </p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: ${slotColor}; font-weight: bold; margin-bottom: 0.5rem;">${slots} Slots</p>
+                            <a href="login.html" class="btn-outline" style="font-size: 0.9rem;">Book Now</a>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="text-align:center; color:red;">Error loading centers.</p>';
+            }
+        }
+
+        // Search Filter
         function searchCenters() {
             const input = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.center-card');
@@ -138,6 +183,9 @@
                 }
             });
         }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadCenters);
     </script>
 </body>
 

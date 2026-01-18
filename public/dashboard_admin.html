@@ -539,9 +539,10 @@
                     e.target.reset();
                     loadHospitals();
                 } else {
-                    alert('Error adding hospital.');
+                    const err = await res.json();
+                    alert('Error adding hospital: ' + (err.error || 'Unknown error'));
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error(err); alert('Connection error'); }
         });
 
         // --- ANNOUNCEMENT LOGIC ---

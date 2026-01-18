@@ -122,6 +122,16 @@ router.delete('/admin/hospital/:id', async (req, res) => {
     }
 });
 
+// Public: List Hospitals for Centers Page
+router.get('/hospitals', async (req, res) => {
+    try {
+        const hospitals = await Hospital.find({ approved_status: 1 }).sort({ name: 1 });
+        res.json({ hospitals });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Add Hospital
 router.post('/admin/hospital', async (req, res) => {
     const { name, location } = req.body;
@@ -129,7 +139,16 @@ router.post('/admin/hospital', async (req, res) => {
         // If we want to simulate auto-increment ID for hospitals like SQL, we can't easily.
         // Let's accept Mongo ID. if code relies on custom ID, we'd need a counter.
         // For now, rely on MongoDB _id.
-        await Hospital.create({ name, location, approved_status: 1 });
+        // Explicitly create a new ObjectId to ensure it works with Mixed type if Mongoose is being picky
+        const newHospital = new Hospital({
+            _id: new mongoose.Types.ObjectId(),
+            name,
+            location,
+            approved_status: 1
+        });
+        await newHospital.save();
+
+        await logAudit('Add Hospital', `Added hospital: ${name}`, 'Admin');
         res.json({ message: "Hospital added successfully!" });
     } catch (err) {
         res.status(500).json({ error: err.message });
