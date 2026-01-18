@@ -100,8 +100,13 @@
                     alert(result.error || 'Login failed');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred');
+                console.error('Login Request Failed:', error);
+                // If the error is a SyntaxError, it usually means the server returned HTML (500/404) instead of JSON
+                if (error.name === 'SyntaxError') {
+                    alert('Server Error: The server returned an invalid response. Please check the console for details.');
+                } else {
+                    alert('Login Error: ' + error.message);
+                }
             }
         });
     </script>
