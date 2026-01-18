@@ -353,9 +353,22 @@ router.post('/stock/add', async (req, res) => {
         // Ensure hospital exists
         // If hospitalId is '1', it might be our default one.
         // In Mongo, if we used _id: 1, we can find it.
-        const hospital = await Hospital.findById(hospId);
-        if (!hospital && hospId === 1) {
-            // It should be created by seed, but just in case
+        // Ensure hospital exists
+        // Try finding by ID first
+        let hospital;
+        try {
+            // If hospId is 1, it might fail if database uses ObjectId.
+            hospital = await Hospital.findById(hospId);
+        } catch (e) { /* Ignore cast error */ }
+
+        // If not found (or cast error), try finding ANY hospital to use as default
+        if (!hospital) {
+            hospital = await Hospital.findOne();
+            if (hospital) hospId = hospital._id;
+        }
+
+        if (!hospital) {
+            return res.status(400).json({ error: "No hospital found. Please add a hospital first." });
         }
 
         // Find or Create Vaccine

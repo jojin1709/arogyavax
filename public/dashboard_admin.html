@@ -627,8 +627,9 @@
             } catch (e) { alert("Delete failed"); }
         }
 
-        async function loadVaccinesForStock() {
-            const select = document.getElementById('vaccineNameStock');
+        async function loadVaccines(elementId) {
+            const select = document.getElementById(elementId);
+            if (!select) return;
             select.innerHTML = '<option>Loading...</option>';
             try {
                 const res = await fetch('/api/vaccines');
@@ -637,6 +638,12 @@
                 if (data.vaccines && data.vaccines.length > 0) {
                     data.vaccines.forEach(v => {
                         const opt = document.createElement('option');
+                        opt.value = v._id; // Use ID for slots/booking reliability, but check what API expects
+                        // For Stock Add, backend expects 'vaccineName'.
+                        // For Slots, we haven't implemented backend logic yet fully, but consistency helps.
+                        // Let's stick to NAME for now as that's what /stock/add expects in my previous code: const { vaccineName ... }
+                        // Wait, looking at routes/api.js /stock/add: it takes vaccineName.
+                        // So value should be name.
                         opt.value = v.name;
                         opt.textContent = v.name;
                         select.appendChild(opt);
@@ -646,6 +653,8 @@
                 }
             } catch (e) { console.error(e); select.innerHTML = '<option>Error loading</option>'; }
         }
+
+        // Alias for backward compat if needed, or just remove.
 
         // --- NAVIGATION LOGIC ---
         document.querySelectorAll('.sidebar-link').forEach(link => {
@@ -679,6 +688,7 @@
                 else if (text.includes('Slots')) {
                     document.getElementById('slots-section').style.display = 'block';
                     loadStockOptions();
+                    loadVaccines('stockVaccineSelect'); // Dynamic load
                 }
                 else if (text.includes('CMS')) document.getElementById('cms-section').style.display = 'block';
                 else if (text.includes('Reports')) {
@@ -688,7 +698,7 @@
                 else if (text.includes('Stock')) {
                     document.getElementById('stock-section').style.display = 'block';
                     loadStock();
-                    loadVaccinesForStock(); // Load vaccines for dropdown
+                    loadVaccines('vaccineNameStock'); // Load vaccines for dropdown
                 }
                 else if (text.includes('Users')) {
                     document.getElementById('users-section').style.display = 'block';
