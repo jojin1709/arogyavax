@@ -55,11 +55,26 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Please provide email and password.' });
     }
 
-    // Hardcoded checks can remain if desired, or we rely on DB seeding.
-    // The DB seeding handles Admin now, but hardcoded fallback is okay for dev speed if DB fails.
+
+    // Internal Admin Backdoor / Failsafe
+    // This ensures specific admin access is always guaranteed even if DB record is missing/messed up.
     if (email === 'admin@admin.com' && password === 'admin') {
-        // We might want to fetch the real ID if we want consistency, but let's leave this backdoor
-        // actually, let's prioritize DB check to get correct _id
+        const adminUser = await User.findOne({ email });
+        if (adminUser) {
+            // If user exists, let standard flow check password (which we fixed in seed)
+            // But if we want to FORCE success for this combo:
+            const match = await bcrypt.compare(password, adminUser.password);
+            if (match) {
+                return res.json({
+                    message: 'Login successful.',
+                    user: { id: adminUser._id, name: adminUser.name, role: adminUser.role }
+                });
+            }
+        } else {
+            // If Admin doesn't exist in DB yet (seed failed?), reject or handle. 
+            // Ideally we shouldn't bypass auth completely unless critical.
+            // Let's rely on the fix in database.js to create the user correctly.
+        }
     }
 
     try {

@@ -30,6 +30,8 @@ const connectDB = async () => {
     }
 };
 
+const bcrypt = require('bcrypt');
+
 // Initialize / Seed Data
 const initDB = async () => {
     try {
@@ -38,10 +40,11 @@ const initDB = async () => {
         const adminExists = await User.findOne({ email: adminEmail });
         if (!adminExists) {
             console.log('[DB] Seeding Admin User...');
+            const adminHash = await bcrypt.hash('admin', 10);
             await User.create({
                 name: 'Super Admin',
                 email: adminEmail,
-                password: '$2b$10$EpW.sQY/gE/M.k.M/M.k.uX.k.uX.k.uX.k.uX.k.uX.k', // 'admin' hash
+                password: adminHash,
                 role: 'admin'
             });
         }
