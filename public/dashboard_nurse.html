@@ -85,6 +85,7 @@
                                 <th>Time</th>
                                 <th>Patient</th>
                                 <th>Vaccine</th>
+                                <th>Nurse & Duty</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -390,11 +391,17 @@
                             ${admitIdDisplay}
                         </td>
                         <td>${a.vaccine_name || 'General'}</td>
+                        <td style="font-size:0.9rem;">
+                            ${a.nurse_name ?
+                            `<strong>${a.nurse_name}</strong><br><small style="color:var(--primary)">Assigned</small>` :
+                            `<button class="btn-outline" style="padding:2px 8px; font-size:0.8rem;" onclick="assignMe('${a.id}')">Assign Me</button>`
+                        }
+                        </td>
                         <td><span class="status-badge ${a.status === 'completed' ? 'status-administered' : 'status-pending'}">${a.status}</span></td>
                         <td>
-                            ${a.status === 'scheduled' ?
-                            `<button class="btn-outline" onclick="checkIn(${a.id})">Check In</button>` :
-                            (a.status === 'checked-in' ? `<button class="btn" onclick="markComplete(${a.id})">Mark Completed</button>` : '✅ Done')
+                            ${a.status === 'scheduled' || a.status === 'checked-in' ?
+                            `<button class="btn" style="padding:5px 10px; font-size:0.8rem;" onclick="markComplete('${a.id}')">Start Duty</button>` :
+                            '✅ Done'
                         }
                         </td>
                     `;

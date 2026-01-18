@@ -550,6 +550,21 @@ router.get('/nurse/patient/:id', async (req, res) => {
     }
 });
 
+// Nurse: Assign Nurse to Appointment
+router.post('/nurse/assign-to-appointment', async (req, res) => {
+    const { appointmentId, nurseId, nurseName } = req.body;
+    try {
+        await Appointment.findByIdAndUpdate(appointmentId, {
+            nurse_id: nurseId,
+            nurse_name: nurseName,
+            status: 'checked-in'
+        });
+        res.json({ message: "Nurse assigned successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Nurse: Update Patient Details
 router.put('/nurse/patient/:id', async (req, res) => {
     const { name, phone, aadhaar, dob, gender, address } = req.body;

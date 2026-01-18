@@ -11,6 +11,8 @@ const appointmentSchema = new mongoose.Schema({
         enum: ['scheduled', 'checked-in', 'completed', 'cancelled'],
         default: 'scheduled'
     },
+    nurse_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    nurse_name: String,
     created_at: { type: Date, default: Date.now }
 });
 
