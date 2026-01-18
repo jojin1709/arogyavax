@@ -86,225 +86,228 @@
                         </ul>
                     </div>
                 </div>
+
+                <!-- Reminders Feature (Moved to Overview) -->
+                <div class="auth-container" style="margin: 2rem 0 0 0; max-width: 100%;">
+                    <h4>🔔 Daily Reminders</h4>
+                    <p style="margin-bottom: 1rem; color: var(--gray);">Send automated SMS/Email reminders to patients
+                        due
+                        for vaccination.</p>
+                    <button class="btn-outline" onclick="alert('✅ Reminders sent to 15 patients due tomorrow!')">Send
+                        Reminders Now</button>
+                </div>
+
+            </div> <!-- Closing overview-section -->
+
+            <!-- Manage Hospitals Section -->
+            <div id="hospitals-section" style="display: none; margin-top: 2rem;">
+                <h3>Manage Hospitals</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <h4>Add New Hospital</h4>
+                    <form id="addHospitalForm">
+                        <div class="form-group">
+                            <label>Hospital Name</label>
+                            <input type="text" id="newHospitalName" placeholder="Enter Hospital Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Location / Pincode</label>
+                            <input type="text" id="newHospitalLocation" placeholder="Enter Location" required>
+                        </div>
+                        <button type="submit" class="btn">Add Hospital</button>
+                    </form>
+                </div>
+                <!-- Dynamic List -->
+                <div style="margin-top: 2rem;">
+                    <h4>Registered Hospitals</h4>
+                    <ul id="hospitalList" style="list-style: none; margin-top: 1rem;">
+                        <!-- Loaded via JS -->
+                    </ul>
+                </div>
             </div>
 
-            <!-- Reminders Feature (Moved to Overview) -->
-            <div class="auth-container" style="margin: 2rem 0 0 0; max-width: 100%;">
-                <h4>🔔 Daily Reminders</h4>
-                <p style="margin-bottom: 1rem; color: var(--gray);">Send automated SMS/Email reminders to patients due
-                    for vaccination.</p>
-                <button class="btn-outline" onclick="alert('✅ Reminders sent to 15 patients due tomorrow!')">Send
-                    Reminders Now</button>
+            <!-- Manage Slots Section -->
+            <div id="slots-section" style="display: none; margin-top: 2rem;">
+                <h3>Manage Vaccine Stock & Slots</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <form id="stockForm">
+                        <div class="form-group">
+                            <label>Select Hospital</label>
+                            <select id="stockHospitalSelect">
+                                <option>Loading...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Vaccine</label>
+                            <select id="stockVaccineSelect">
+                                <option>Covishield</option>
+                                <option>Covaxin</option>
+                                <option>Polio</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Add Slots / Quantity</label>
+                            <input type="number" id="stockQuantity" placeholder="Enter Quantity" required>
+                        </div>
+                        <button type="submit" class="btn">Update Stock</button>
+                    </form>
+                </div>
             </div>
 
-    </div> <!-- Closing overview-section -->
-
-    <!-- Manage Hospitals Section -->
-    <div id="hospitals-section" style="display: none; margin-top: 2rem;">
-        <h3>Manage Hospitals</h3>
-        <br>
-        <div class="auth-container" style="margin: 0; max-width: 600px;">
-            <h4>Add New Hospital</h4>
-            <form id="addHospitalForm">
-                <div class="form-group">
-                    <label>Hospital Name</label>
-                    <input type="text" id="newHospitalName" placeholder="Enter Hospital Name" required>
+            <!-- CMS Section -->
+            <div id="cms-section" style="display: none; margin-top: 2rem;">
+                <h3>Content Management (CMS)</h3>
+                <br>
+                <div class="auth-container" style="margin: 0; max-width: 600px;">
+                    <h4>Post New Announcement</h4>
+                    <form id="announcementForm">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="announceTitle" placeholder="Announcement Title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea id="announceMsg" rows="4"
+                                style="width: 100%; padding: 0.8rem; border:1px solid var(--border-color); border-radius: 8px;"
+                                placeholder="Enter message..."></textarea>
+                        </div>
+                        <button type="submit" class="btn">Post Announcement</button>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label>Location / Pincode</label>
-                    <input type="text" id="newHospitalLocation" placeholder="Enter Location" required>
-                </div>
-                <button type="submit" class="btn">Add Hospital</button>
-            </form>
-        </div>
-        <!-- Dynamic List -->
-        <div style="margin-top: 2rem;">
-            <h4>Registered Hospitals</h4>
-            <ul id="hospitalList" style="list-style: none; margin-top: 1rem;">
-                <!-- Loaded via JS -->
-            </ul>
-        </div>
-    </div>
-
-    <!-- Manage Slots Section -->
-    <div id="slots-section" style="display: none; margin-top: 2rem;">
-        <h3>Manage Vaccine Stock & Slots</h3>
-        <br>
-        <div class="auth-container" style="margin: 0; max-width: 600px;">
-            <form id="stockForm">
-                <div class="form-group">
-                    <label>Select Hospital</label>
-                    <select id="stockHospitalSelect">
-                        <option>Loading...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Select Vaccine</label>
-                    <select id="stockVaccineSelect">
-                        <option>Covishield</option>
-                        <option>Covaxin</option>
-                        <option>Polio</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Add Slots / Quantity</label>
-                    <input type="number" id="stockQuantity" placeholder="Enter Quantity" required>
-                </div>
-                <button type="submit" class="btn">Update Stock</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- CMS Section -->
-    <div id="cms-section" style="display: none; margin-top: 2rem;">
-        <h3>Content Management (CMS)</h3>
-        <br>
-        <div class="auth-container" style="margin: 0; max-width: 600px;">
-            <h4>Post New Announcement</h4>
-            <form id="announcementForm">
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="announceTitle" placeholder="Announcement Title" required>
-                </div>
-                <div class="form-group">
-                    <label>Message</label>
-                    <textarea id="announceMsg" rows="4"
-                        style="width: 100%; padding: 0.8rem; border:1px solid var(--border-color); border-radius: 8px;"
-                        placeholder="Enter message..."></textarea>
-                </div>
-                <button type="submit" class="btn">Post Announcement</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Manage Users Section -->
-    <div id="users-section" style="display: none; margin-top: 2rem;">
-        <h3>Manage Users & Roles</h3>
-        <p style="color: var(--text-main);">View registered users and their roles.</p>
-        <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                    <tr>
-                        <td colspan="4">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Audit Logs Section -->
-    <div id="audit-section" style="display: none; margin-top: 2rem;">
-        <h3>📜 System Audit Logs</h3>
-        <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>Details</th>
-                        <th>Performed By</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody id="auditTableBody">
-                    <tr>
-                        <td colspan="4">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Nurse Requests Section -->
-    <div id="nurse-requests-section" style="display: none; margin-top: 2rem;">
-        <h3>👩‍⚕️ Nurse Registration Requests</h3>
-        <p>Approve or Reject new nurse registrations.</p>
-        <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Registered At</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="nurseRequestsBody">
-                    <tr>
-                        <td colspan="5">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <!-- Reports Section (Charts) -->
-    <div id="reports-section" style="display: none; margin-top: 2rem;">
-        <h3>📊 System Analytics</h3>
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem;">
-            <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
-                <canvas id="vaccinationChart"></canvas>
             </div>
-            <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
-                <canvas id="genderChart"></canvas>
+
+            <!-- Manage Users Section -->
+            <div id="users-section" style="display: none; margin-top: 2rem;">
+                <h3>Manage Users & Roles</h3>
+                <p style="color: var(--text-main);">View registered users and their roles.</p>
+                <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Stock Management Section -->
-    <div id="stock-section" style="display: none; margin-top: 2rem;">
-        <h3>📦 Vaccine Inventory</h3>
+            <!-- Audit Logs Section -->
+            <div id="audit-section" style="display: none; margin-top: 2rem;">
+                <h3>📜 System Audit Logs</h3>
+                <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Details</th>
+                                <th>Performed By</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody">
+                            <tr>
+                                <td colspan="4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
-            <!-- Add Stock -->
-            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
-                <h4>Add New Stock</h4>
-                <form id="addStockForm" style="margin-top: 1rem;">
-                    <div class="form-group">
-                        <label>Vaccine Name</label>
-                        <select id="vaccineNameStock"
-                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                            <option value="Covaxin">Covaxin</option>
-                            <option value="Covishield">Covishield</option>
-                            <option value="Polio">Polio</option>
-                            <option value="Hepatitis B">Hepatitis B</option>
-                        </select>
+            <!-- Nurse Requests Section -->
+            <div id="nurse-requests-section" style="display: none; margin-top: 2rem;">
+                <h3>👩‍⚕️ Nurse Registration Requests</h3>
+                <p>Approve or Reject new nurse registrations.</p>
+                <div class="table-container" style="margin-top: 1rem; color: var(--text-main);">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Registered At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nurseRequestsBody">
+                            <tr>
+                                <td colspan="5">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Reports Section (Charts) -->
+            <div id="reports-section" style="display: none; margin-top: 2rem;">
+                <h3>📊 System Analytics</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1rem;">
+                    <div
+                        style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <canvas id="vaccinationChart"></canvas>
                     </div>
-                    <div class="form-group">
-                        <label>Quantity (Doses)</label>
-                        <input type="number" id="stockQuantity" min="1" required
-                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <div
+                        style="background: var(--bg-card); padding: 1rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <canvas id="genderChart"></canvas>
                     </div>
-                    <button type="submit" class="btn" style="width: 100%;">update Stock</button>
-                </form>
+                </div>
             </div>
 
-            <!-- View Stock -->
-            <div class="table-container" style="color: var(--text-main);">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Vaccine</th>
-                            <th>Current Stock</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stockTableBody">
-                        <!-- Loaded dynamically -->
-                    </tbody>
-                </table>
+            <!-- Stock Management Section -->
+            <div id="stock-section" style="display: none; margin-top: 2rem;">
+                <h3>📦 Vaccine Inventory</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                    <!-- Add Stock -->
+                    <div
+                        style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+                        <h4>Add New Stock</h4>
+                        <form id="addStockForm" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label>Vaccine Name</label>
+                                <select id="vaccineNameStock"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="Covaxin">Covaxin</option>
+                                    <option value="Covishield">Covishield</option>
+                                    <option value="Polio">Polio</option>
+                                    <option value="Hepatitis B">Hepatitis B</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity (Doses)</label>
+                                <input type="number" id="stockQuantity" min="1" required
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <button type="submit" class="btn" style="width: 100%;">update Stock</button>
+                        </form>
+                    </div>
+
+                    <!-- View Stock -->
+                    <div class="table-container" style="color: var(--text-main);">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vaccine</th>
+                                    <th>Current Stock</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    </main>
+        </main>
     </div>
 
     <!-- Chatbot Widget Injected via main.js -->
@@ -492,7 +495,7 @@
                 if (data.hospitals && data.hospitals.length > 0) {
                     data.hospitals.forEach(h => {
                         const li = document.createElement('li');
-                        li.style.cssText = 'padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
+                        li.style.cssText = 'padding: 1rem; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;';
                         li.innerHTML = `
                             <span>${h.name} (${h.location})</span> 
                             <div>
