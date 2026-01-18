@@ -65,74 +65,74 @@ const initDB = async () => {
             }).save();
         }
 
-        // Seed Vaccines
-        const vaccinesCount = await Vaccine.countDocuments();
-        if (vaccinesCount === 0) {
-            console.log('[DB] Seeding Vaccines...');
-            const vaccines = [
-                // Birth
-                { name: 'BCG', timing_label: 'At Birth', age_required_days: 0 },
-                { name: 'OPV 0', timing_label: 'At Birth', age_required_days: 0 },
-                { name: 'Hepatitis B 1', timing_label: 'At Birth', age_required_days: 0 },
-                // 6 Weeks
-                { name: 'DTwP 1', timing_label: '6 Weeks', age_required_days: 42 },
-                { name: 'IPV 1', timing_label: '6 Weeks', age_required_days: 42 },
-                { name: 'Hepatitis B 2', timing_label: '6 Weeks', age_required_days: 42 },
-                { name: 'Hib 1', timing_label: '6 Weeks', age_required_days: 42 },
-                { name: 'Rotavirus 1', timing_label: '6 Weeks', age_required_days: 42 },
-                { name: 'PCV 1', timing_label: '6 Weeks', age_required_days: 42 },
-                // 10 Weeks
-                { name: 'DTwP 2', timing_label: '10 Weeks', age_required_days: 70 },
-                { name: 'IPV 2', timing_label: '10 Weeks', age_required_days: 70 },
-                { name: 'Hib 2', timing_label: '10 Weeks', age_required_days: 70 },
-                { name: 'Rotavirus 2', timing_label: '10 Weeks', age_required_days: 70 },
-                { name: 'PCV 2', timing_label: '10 Weeks', age_required_days: 70 },
-                { name: 'Hepatitis B 3 (Optional)', timing_label: '10 Weeks', age_required_days: 70 },
-                // 14 Weeks
-                { name: 'DTwP 3', timing_label: '14 Weeks', age_required_days: 98 },
-                { name: 'IPV 3', timing_label: '14 Weeks', age_required_days: 98 },
-                { name: 'Hib 3', timing_label: '14 Weeks', age_required_days: 98 },
-                { name: 'Rotavirus 3', timing_label: '14 Weeks', age_required_days: 98 },
-                { name: 'PCV 3', timing_label: '14 Weeks', age_required_days: 98 },
-                { name: 'Hepatitis B 4', timing_label: '14 Weeks', age_required_days: 98 },
-                // 6 Months
-                { name: 'Influenza 1', timing_label: '6 Months', age_required_days: 180 },
-                // 7 Months
-                { name: 'Influenza 2', timing_label: '7 Months', age_required_days: 210 },
-                // 6-9 Months
-                { name: 'Typhoid Conjugate', timing_label: '6-9 Months', age_required_days: 180 },
-                // 9 Months
-                { name: 'MMR 1', timing_label: '9 Months', age_required_days: 270 },
-                // 12 Months
-                { name: 'Hepatitis A 1', timing_label: '12 Months', age_required_days: 365 },
-                { name: 'JE 1', timing_label: '12 Months', age_required_days: 365 },
-                // 13 Months
-                { name: 'JE 2', timing_label: '13 Months', age_required_days: 395 },
-                // 15 Months
-                { name: 'MMR 2', timing_label: '15 Months', age_required_days: 450 },
-                { name: 'Varicella 1', timing_label: '15 Months', age_required_days: 450 },
-                { name: 'PCV Booster', timing_label: '15 Months', age_required_days: 450 },
-                // 16-18 Months
-                { name: 'DTwP/DTaP Booster 1', timing_label: '16-18 Months', age_required_days: 480 },
-                { name: 'IPV Booster 1', timing_label: '16-18 Months', age_required_days: 480 },
-                { name: 'Hib Booster 1', timing_label: '16-18 Months', age_required_days: 480 },
-                // 18-19 Months
-                { name: 'Hepatitis A 2', timing_label: '18-19 Months', age_required_days: 540 },
-                { name: 'Varicella 2', timing_label: '18-19 Months', age_required_days: 540 },
-                // 4-6 Years
-                { name: 'DTwP/DTaP Booster 2', timing_label: '4-6 Years', age_required_days: 1460 },
-                { name: 'IPV Booster 2', timing_label: '4-6 Years', age_required_days: 1460 },
-                { name: 'MMR 3', timing_label: '4-6 Years', age_required_days: 1460 },
-                // 10-12 Years
-                { name: 'Tdap/Td', timing_label: '10-12 Years', age_required_days: 3650 },
-                { name: 'HPV', timing_label: '10-12 Years', age_required_days: 3650 },
-                // Annual Flu
-                { name: 'Annual Flu 2Y', timing_label: '2 Years', age_required_days: 730 },
-                { name: 'Annual Flu 3Y', timing_label: '3 Years', age_required_days: 1095 },
-                { name: 'Annual Flu 4Y', timing_label: '4 Years', age_required_days: 1460 },
-                { name: 'Annual Flu 5Y', timing_label: '5 Years', age_required_days: 1825 }
-            ];
-            await Vaccine.insertMany(vaccines);
+        // Seed Vaccines (Upsert to ensure all exist)
+        console.log('[DB] Seeding/Updating Vaccines...');
+        const vaccines = [
+            // Birth
+            { name: 'BCG', timing_label: 'At Birth', age_required_days: 0 },
+            { name: 'Hepatitis B-1 (BD)', timing_label: 'At Birth', age_required_days: 0 },
+            { name: 'OPV 0', timing_label: 'At Birth', age_required_days: 0 },
+            // 6 Weeks
+            { name: 'DTwP/DTaP-1', timing_label: '6 Weeks', age_required_days: 42 },
+            { name: 'IPV-1', timing_label: '6 Weeks', age_required_days: 42 },
+            { name: 'Hib-1', timing_label: '6 Weeks', age_required_days: 42 },
+            { name: 'Hep B-2', timing_label: '6 Weeks', age_required_days: 42 },
+            { name: 'Rotavirus-1', timing_label: '6 Weeks', age_required_days: 42 },
+            { name: 'PCV-1', timing_label: '6 Weeks', age_required_days: 42 },
+            // 10 Weeks
+            { name: 'DTwP/DTaP-2', timing_label: '10 Weeks', age_required_days: 70 },
+            { name: 'IPV-2', timing_label: '10 Weeks', age_required_days: 70 },
+            { name: 'Hib-2', timing_label: '10 Weeks', age_required_days: 70 },
+            { name: 'Hep B-3', timing_label: '10 Weeks', age_required_days: 70 },
+            { name: 'Rotavirus-2', timing_label: '10 Weeks', age_required_days: 70 },
+            { name: 'PCV-2', timing_label: '10 Weeks', age_required_days: 70 },
+            // 14 Weeks
+            { name: 'DTwP/DTaP-3', timing_label: '14 Weeks', age_required_days: 98 },
+            { name: 'IPV-3', timing_label: '14 Weeks', age_required_days: 98 },
+            { name: 'Hib-3', timing_label: '14 Weeks', age_required_days: 98 },
+            { name: 'Hep B-4', timing_label: '14 Weeks', age_required_days: 98 },
+            { name: 'Rotavirus-3', timing_label: '14 Weeks', age_required_days: 98 },
+            { name: 'PCV-3', timing_label: '14 Weeks', age_required_days: 98 },
+            // 6 Months
+            { name: 'Influenza(IIV)-1', timing_label: '6 Months', age_required_days: 180 },
+            // 7 Months
+            { name: 'Influenza(IIV)-2', timing_label: '7 Months', age_required_days: 210 },
+            // 6-9 Months
+            { name: 'Typhoid Conjugate', timing_label: '6-9 Months', age_required_days: 180 },
+            // 9 Months
+            { name: 'MMR-1', timing_label: '9 Months', age_required_days: 270 },
+            // 12 Months
+            { name: 'Hepatitis A', timing_label: '12 Months', age_required_days: 365 },
+            { name: 'JE-1', timing_label: '12 Months', age_required_days: 365 },
+            // 13 Months
+            { name: 'JE-2', timing_label: '13 Months', age_required_days: 395 },
+            // 15 Months
+            { name: 'MMR-2', timing_label: '15 Months', age_required_days: 450 },
+            { name: 'Varicella-1', timing_label: '15 Months', age_required_days: 450 },
+            { name: 'PCV Booster', timing_label: '15 Months', age_required_days: 450 },
+            // 16-18 Months
+            { name: 'DTwP/DTaP-B1', timing_label: '16-18 Months', age_required_days: 480 },
+            { name: 'Hib-B1', timing_label: '16-18 Months', age_required_days: 480 },
+            { name: 'IPV-B1', timing_label: '16-18 Months', age_required_days: 480 },
+            // 18-19 Months
+            { name: 'Hep A-2', timing_label: '18-19 Months', age_required_days: 540 },
+            { name: 'Varicella-2', timing_label: '18-19 Months', age_required_days: 540 },
+            // 4-6 Years
+            { name: 'DTwP/DTaP-B2', timing_label: '4-6 Years', age_required_days: 1460 },
+            { name: 'IPV-B2', timing_label: '4-6 Years', age_required_days: 1460 },
+            { name: 'MMR-3', timing_label: '4-6 Years', age_required_days: 1460 },
+            // 10-12 Years
+            { name: 'Tdap', timing_label: '10-12 Years', age_required_days: 3650 },
+            { name: 'HPV', timing_label: '10-12 Years', age_required_days: 3650 },
+            // Annual Flu
+            { name: 'Annual Flu 2 Years', timing_label: '2 Years', age_required_days: 730 },
+            { name: 'Annual Flu 3 Years', timing_label: '3 Years', age_required_days: 1095 },
+            { name: 'Annual Flu 4 Years', timing_label: '4 Years', age_required_days: 1460 },
+            { name: 'Annual Flu 5 Years', timing_label: '5 Years', age_required_days: 1825 }
+        ];
+
+        for (const v of vaccines) {
+            await Vaccine.updateOne({ name: v.name }, { $set: v }, { upsert: true });
         }
 
         // Seed Default Hospital
