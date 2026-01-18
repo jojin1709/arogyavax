@@ -111,6 +111,10 @@
                             <input type="date" id="bookingDate" required>
                         </div>
                         <div class="form-group">
+                            <label>Preferred Time</label>
+                            <input type="time" id="bookingTime" required>
+                        </div>
+                        <div class="form-group">
                             <label>Select Hospital</label>
                             <select id="bookingHospital" required>
                                 <option value="" disabled selected>Select a Hospital</option>
@@ -270,12 +274,13 @@
                 const vaccineId = document.getElementById('bookingVaccine').value;
                 const hospitalId = document.getElementById('bookingHospital').value;
                 const date = document.getElementById('bookingDate').value;
+                const time = document.getElementById('bookingTime').value;
 
                 try {
                     const res = await fetch('/api/patient/book', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ patientId: user.id, vaccineId, hospitalId, date })
+                        body: JSON.stringify({ patientId: user.id, vaccineId, hospitalId, date, time })
                     });
                     const data = await res.json();
                     if (res.ok) {

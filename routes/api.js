@@ -157,9 +157,9 @@ router.post('/admin/hospital', async (req, res) => {
 
 // Patient Booking Endpoint
 router.post('/patient/book', async (req, res) => {
-    const { patientId, vaccineId, date, hospitalId } = req.body;
+    const { patientId, vaccineId, date, time, hospitalId } = req.body;
     try {
-        if (!patientId || !vaccineId || !date || !hospitalId) {
+        if (!patientId || !vaccineId || !date || !hospitalId || !time) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -168,6 +168,7 @@ router.post('/patient/book', async (req, res) => {
             vaccine_id: vaccineId,
             hospital_id: hospitalId,
             appointment_date: date,
+            appointment_time: time,
             status: 'scheduled'
         });
         res.json({ message: "Appointment booked successfully!" });

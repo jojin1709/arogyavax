@@ -664,9 +664,9 @@ th {
 }
 
 [data-theme="dark"] th {
-    background-color: var(--dark);
-    color: var(--text-main);
-    border-bottom: 1px solid var(--border-color);
+    background-color: #111827; /* Dark background for th */
+    color: var(--primary); /* Use primary color for headers in dark mode for pop */
+    border-bottom: 2px solid var(--border-color);
 }
 
 tr:hover {
