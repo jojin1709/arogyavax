@@ -177,6 +177,29 @@ router.post('/patient/book', async (req, res) => {
     }
 });
 
+// Patient Appointments Endpoint
+router.get('/patient/:id/appointments', async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ patient_id: req.params.id })
+            .populate('vaccine_id', 'name')
+            .populate('hospital_id', 'name')
+            .sort({ appointment_date: 1, appointment_time: 1 });
+
+        const formatted = appointments.map(a => ({
+            id: a._id,
+            date: a.appointment_date,
+            time: a.appointment_time,
+            status: a.status,
+            vaccine: a.vaccine_id?.name || 'General',
+            hospital: a.hospital_id?.name || 'City General'
+        }));
+
+        res.json({ appointments: formatted });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Administer Vaccine (Directly)
 router.post('/record-vaccine', async (req, res) => {
     const { identifier, vaccineId, vaccineName } = req.body;
@@ -757,12 +780,71 @@ router.get('/admin/reports/overdue', async (req, res) => {
 });
 
 router.get('/nurse/due-list', async (req, res) => {
-    res.json({
-        dueList: [
-            { name: 'Baby A', age: '6 Weeks', vaccine: 'Pentavalent 1', contact: 'Parent A (9999999999)' },
-            { name: 'Baby B', age: '10 Weeks', vaccine: 'Pentavalent 2', contact: 'Parent B (8888888888)' }
-        ]
-    });
+    try {
+        const patients = await User.find({ role: 'patient', dob: { $exists: true } });
+        const allVaccines = await Vaccine.find();
+        const records = await VaccinationRecord.find();
+
+        const dueList = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        patients.forEach(p => {
+            const patientRecords = records.filter(r => r.patient_id.toString() === p._id.toString());
+            const takenVaccineIds = new Set(patientRecords.map(r => r.vaccine_id.toString()));
+
+            allVaccines.forEach(v => {
+                if (!takenVaccineIds.has(v._id.toString())) {
+                    const dueDate = new Date(p.dob);
+                    dueDate.setDate(dueDate.getDate() + v.age_required_days);
+
+                    const diffTime = dueDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    // Only show if due this week (within 7 days) or overdue
+                    if (diffDays <= 7) {
+                        dueList.push({
+                            id: p._id,
+                            name: p.name,
+                            age: `${Math.floor((today - new Date(p.dob)) / (1000 * 60 * 60 * 24 * 30.44))} Months`,
+                            vaccine: v.name,
+                            contact: p.phone || p.email || 'No Contact',
+                            dueDate: dueDate.toISOString().split('T')[0],
+                            status: diffDays < 0 ? 'Overdue' : 'Due Soon'
+                        });
+                    }
+                }
+            });
+        });
+
+        res.json({ dueList: dueList.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Nurse: Get All Vaccinations for Certificate Review
+router.get('/nurse/all-vaccinations', async (req, res) => {
+    try {
+        const records = await VaccinationRecord.find()
+            .populate('patient_id', 'name')
+            .populate('vaccine_id', 'name')
+            .populate('hospital_id', 'name')
+            .sort({ date_administered: -1 });
+
+        const formatted = records.map(r => ({
+            id: r._id,
+            patient_name: r.patient_id?.name || 'Unknown Patient',
+            vaccine_name: r.vaccine_id?.name || 'Unknown Vaccine',
+            date: r.date_administered,
+            hospital_name: r.hospital_id?.name || 'City General',
+            certificate_issued: r.certificate_issued
+        }));
+
+        res.json({ records: formatted });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Get Certificates (Patient)

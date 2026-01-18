@@ -37,6 +37,7 @@
             <a href="#" class="sidebar-link" onclick="showSection('scheduleSection')">📅 Schedule</a>
             <a href="#" class="sidebar-link" onclick="showSection('administerSection')">💉 Administer</a>
             <a href="#" class="sidebar-link" onclick="showSection('managePatientSection')">👥 Patients</a>
+            <a href="#" class="sidebar-link" onclick="showSection('certificateManagementSection')">📜 Certificates</a>
             <a href="#" class="sidebar-link" onclick="showSection('automationSection')">🤖 Automation</a>
             <a href="#" class="sidebar-link" onclick="showSection('settingsSection')">⚙️ Settings</a>
         </aside>
@@ -158,12 +159,8 @@
                         </div>
                         <div class="form-group">
                             <label>Select Vaccine</label>
-                            <select id="vaccineSelect">
-                                <option value="1">BCG</option>
-                                <option value="2">Hepatitis B</option>
-                                <option value="3">OPV</option>
-                                <option value="4">Covaxin</option>
-                                <option value="5">Covishield</option>
+                            <select id="vaccineSelect" required>
+                                <option value="" disabled selected>Loading vaccines...</option>
                             </select>
                         </div>
                         <button type="submit" class="btn">Mark as Administered</button>
@@ -243,6 +240,31 @@
                 </div>
             </div>
 
+            <!-- CERTIFICATE MANAGEMENT -->
+            <div id="certificateManagementSection" class="section-content" style="display: none;">
+                <h2>Certificate Management</h2>
+                <div class="search-bar" style="margin-bottom: 2rem; display: flex; gap: 10px;">
+                    <input type="text" id="certSearch" placeholder="Search Patient or Vaccine..."
+                        style="flex: 1; padding: 10px;">
+                    <button class="btn" onclick="loadCertificates()">Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Vaccine</th>
+                                <th>Date</th>
+                                <th>Hospital</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="certManagementList"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- AUTOMATION -->
             <div id="automationSection" class="section-content" style="display:none;">
                 <h2>Automation Center</h2>
@@ -260,8 +282,9 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Age</th>
                                 <th>Vaccine</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
                                 <th>Contact</th>
                             </tr>
                         </thead>
@@ -359,6 +382,8 @@
             if (sectionId === 'dashboardSection') loadDashboard();
             if (sectionId === 'automationSection') loadDueList();
             if (sectionId === 'managePatientSection') searchPatients();
+            if (sectionId === 'certificateManagementSection') loadCertificates();
+            if (sectionId === 'administerSection') loadVaccinesForAdmin();
         }
 
         // --- DASHBOARD ---
@@ -463,9 +488,72 @@
             tbody.innerHTML = '';
             data.dueList.forEach(d => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${d.name}</td><td>${d.age}</td><td>${d.vaccine}</td><td>${d.contact}</td>`;
+                tr.innerHTML = `
+                    <td>${d.name}</td>
+                    <td>${d.vaccine}</td>
+                    <td>${d.dueDate}</td>
+                    <td><span class="status-badge" style="background:${d.status === 'Overdue' ? '#fee2e2' : '#e0f2fe'}; color:${d.status === 'Overdue' ? '#dc2626' : '#0284c7'}">${d.status}</span></td>
+                    <td>${d.contact}</td>
+                `;
                 tbody.appendChild(tr);
             });
+        }
+
+        async function loadVaccinesForAdmin() {
+            const select = document.getElementById('vaccineSelect');
+            try {
+                const res = await fetch('/api/vaccines');
+                const data = await res.json();
+                select.innerHTML = '<option value="" disabled selected>Select Vaccine</option>';
+                data.vaccines.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v._id;
+                    opt.textContent = v.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadCertificates() {
+            const tbody = document.getElementById('certManagementList');
+            tbody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/nurse/all-vaccinations');
+                const data = await res.json();
+                tbody.innerHTML = '';
+                data.records.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${r.patient_name}</strong></td>
+                        <td>${r.vaccine_name}</td>
+                        <td>${new Date(r.date).toLocaleDateString()}</td>
+                        <td>${r.hospital_name}</td>
+                        <td><span class="status-badge ${r.certificate_issued ? 'status-administered' : 'status-pending'}">${r.certificate_issued ? 'Issued' : 'Pending'}</span></td>
+                        <td>
+                            <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="issueCertificateAPI('${r.id}')">
+                                ${r.certificate_issued ? 'Re-issue' : 'Send to Patient'}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        async function issueCertificateAPI(recordId) {
+            try {
+                const res = await fetch('/api/nurse/issue-certificate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recordId })
+                });
+                if (res.ok) {
+                    alert('Certificate Sent Successfully! 📤');
+                    loadCertificates();
+                } else {
+                    alert('Error issuing certificate');
+                }
+            } catch (err) { console.error(err); }
         }
 
         // --- SCHEDULE ---

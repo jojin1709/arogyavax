@@ -225,6 +225,7 @@
                     document.querySelectorAll('main > div').forEach(div => div.style.display = 'none');
                     const target = document.getElementById(targetId);
                     if (target) target.style.display = 'block';
+                    if (targetId === 'certificate-section') loadCertificates();
                 }
             });
         });
@@ -439,6 +440,28 @@
                             }
                         });
                     }
+                }
+
+                // Fetch Booked Appointments
+                const apptRes = await fetch(`/api/patient/${user._id}/appointments`);
+                const apptData = await apptRes.json();
+
+                if (apptData.appointments) {
+                    apptData.appointments.forEach(a => {
+                        if (a.status !== 'completed') {
+                            pending++;
+                            if (tbody) {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td>${a.vaccine}</td>
+                                    <td>${new Date(a.date).toLocaleDateString()} (${a.time})</td>
+                                    <td><span class="status-badge status-${a.status}">${a.status.toUpperCase()}</span></td>
+                                    <td>${a.hospital}</td>
+                                `;
+                                tbody.appendChild(tr);
+                            }
+                        }
+                    });
                 }
 
                 if (document.getElementById('completedCount')) document.getElementById('completedCount').textContent = completed;
