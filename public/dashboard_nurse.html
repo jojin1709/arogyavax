@@ -171,8 +171,50 @@
                     <input type="text" id="statsSearch" placeholder="Search by Name, Phone, or Aadhaar..."
                         style="flex: 1; padding: 10px;">
                     <button class="btn" onclick="searchPatients()">Search</button>
+                    <button class="btn" style="background-color: var(--secondary);" onclick="openAddPatientModal()">+
+                        New Patient</button>
                 </div>
                 <div id="searchResults" style="margin-bottom: 2rem;"></div>
+
+                <!-- Add Patient Modal (Hidden by default) -->
+                <div id="addPatientModal" class="modal"
+                    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+                    <div class="modal-content"
+                        style="background:white; padding:20px; border-radius:10px; width:400px; max-width:90%;">
+                        <h3>Register New Patient</h3>
+                        <form id="addPatientForm">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="newPatName" required
+                                    style="width:100%; padding:8px; margin-bottom:10px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Email (Optional)</label>
+                                <input type="email" id="newPatEmail"
+                                    style="width:100%; padding:8px; margin-bottom:10px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="text" id="newPatPhone" required
+                                    style="width:100%; padding:8px; margin-bottom:10px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar Number</label>
+                                <input type="text" id="newPatAadhaar" required
+                                    style="width:100%; padding:8px; margin-bottom:10px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Password (Default: 123456)</label>
+                                <input type="text" value="123456" disabled
+                                    style="width:100%; padding:8px; margin-bottom:10px; background:#eee;">
+                            </div>
+                            <button type="submit" class="btn" style="width:100%;">Register Patient</button>
+                            <button type="button" class="btn-outline" style="width:100%; margin-top:10px;"
+                                onclick="closeAddPatientModal()">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+
                 <div id="patientEditor"
                     style="display: none; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
                     <!-- Editor Form Same as before -->
@@ -607,6 +649,40 @@
                 }
             });
         }
+
+        // --- NEW PATIENT LOGIC ---
+        function openAddPatientModal() { document.getElementById('addPatientModal').style.display = 'flex'; }
+        function closeAddPatientModal() { document.getElementById('addPatientModal').style.display = 'none'; }
+
+        document.getElementById('addPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('newPatName').value;
+            const email = document.getElementById('newPatEmail').value || undefined; // Optional
+            const phone = document.getElementById('newPatPhone').value;
+            const aadhaar = document.getElementById('newPatAadhaar').value;
+
+            try {
+                const res = await fetch('/api/nurse/add-patient', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, aadhaar })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Patient Registered Successfully! ✅');
+                    e.target.reset();
+                    closeAddPatientModal();
+                    // Optionally search for them immediately
+                    document.getElementById('statsSearch').value = name;
+                    searchPatients();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Request failed');
+            }
+        });
 
         // Init Load
         loadDashboard();
