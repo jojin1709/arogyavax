@@ -35,19 +35,23 @@ const bcrypt = require('bcrypt');
 // Initialize / Seed Data
 const initDB = async () => {
     try {
-        // Seed Admin
+
+        // Seed Admin - Force Update/Upsert to ensure password is always correct ('admin')
         const adminEmail = 'admin@admin.com';
-        const adminExists = await User.findOne({ email: adminEmail });
-        if (!adminExists) {
-            console.log('[DB] Seeding Admin User...');
-            const adminHash = await bcrypt.hash('admin', 10);
-            await User.create({
+        console.log('[DB] Ensuring Admin User exists and has correct password...');
+        const adminHash = await bcrypt.hash('admin', 10);
+
+        await User.findOneAndUpdate(
+            { email: adminEmail },
+            {
                 name: 'Super Admin',
                 email: adminEmail,
                 password: adminHash,
-                role: 'admin'
-            });
-        }
+                role: 'admin',
+                status: 'active'
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
 
         // Seed Vaccines
         const vaccinesCount = await Vaccine.countDocuments();
