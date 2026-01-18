@@ -21,16 +21,19 @@ if (!mongoURI) {
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(mongoURI); // Mongoose 6+ defaults are fine
+        console.log(`[DB] Attempting connection to: ${mongoURI ? mongoURI.substring(0, 30) + "..." : "UNDEFINED"}`);
+        await mongoose.connect(mongoURI, {
+            serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+        });
         console.log('[DB] Connected to MongoDB successfully.');
         await initDB();
     } catch (err) {
         console.error('[DB] MongoDB Connection Error:', err.message);
-        // Retry logic could go here
+        // On Vercel, we might need to handle cold starts
     }
 };
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Initialize / Seed Data
 const initDB = async () => {

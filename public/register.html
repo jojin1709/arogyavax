@@ -274,11 +274,9 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    if (data.role === 'nurse') {
-                        alert('✅ Registration Submitted! \n\nPlease wait for Admin approval. You can login once approved.');
-                    } else {
-                        alert('✅ Account Verified & Created! \n\nPlease Login now.');
-                    }
+                    console.log("Registration Success. Role:", data.role);
+                    const msg = result.message || '✅ Account Verified & Created! \n\nPlease Login now.';
+                    alert(msg);
                     window.location.href = 'login.html';
                 } else {
                     throw new Error(result.error || 'Registration failed');

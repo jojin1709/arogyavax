@@ -1,6 +1,6 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
-const { User } = require('../database'); // Import User model from database.js export
+const bcrypt = require('bcryptjs');
+const { User } = require('../database');
 const router = express.Router();
 
 // Register Route
@@ -78,7 +78,7 @@ router.post('/login', async (req, res) => {
         }
     } catch (err) {
         console.error('Login Error:', err);
-        res.status(500).json({ error: 'Database error. Please try again later.' });
+        res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });
 
