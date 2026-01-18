@@ -127,14 +127,6 @@ function initGlobalChatbot() {
         chatLi.innerHTML = `<p>${message}</p>`;
         return chatLi;
     }
-    sendChatBtn.addEventListener("click", handleChat);
-    chatInput.addEventListener("keyup", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleChat();
-        }
-    });
-}
 }
 
 document.addEventListener("DOMContentLoaded", () => {

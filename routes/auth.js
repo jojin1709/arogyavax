@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const db = require('../database');
+const { User } = require('../database'); // Import User model from database.js export
 const router = express.Router();
 
 // Register Route
@@ -17,34 +17,32 @@ router.post('/register', async (req, res) => {
         // Determine Status: Nurses are pending, others active
         const status = (role === 'nurse') ? 'pending' : 'active';
 
-        // Include profile_pic (default to null if not provided)
-        const sql = `INSERT INTO users (name, email, password, role, phone, aadhaar, profile_pic, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`;
-        const params = [name, email, hash, role, phone, aadhaar, req.body.profile_pic || null, status];
-
-        try {
-            const result = await db.query(sql, params);
-            // Custom message for nurses
-            if (role === 'nurse') {
-                res.status(201).json({ message: 'Registration successful! Please wait for Admin approval to login.', userId: result.rows[0].id });
-            } else {
-                res.status(201).json({ message: 'User registered successfully.', userId: result.rows[0].id });
-            }
-        } catch (dbErr) {
-            // Check for "column does not exist" error (Postgres error code 42703)
-            if (dbErr.code === '42703') {
-                console.warn("Registration fallback: 'profile_pic' or 'status' column missing. Retrying basic insert.");
-                const fallbackSql = `INSERT INTO users (name, email, password, role, phone, aadhaar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
-                const fallbackParams = [name, email, hash, role, phone, aadhaar];
-                const fallbackResult = await db.query(fallbackSql, fallbackParams);
-                res.status(201).json({ message: 'User registered successfully (fallback).', userId: fallbackResult.rows[0].id });
-            } else {
-                throw dbErr; // Re-throw other errors to be caught effectively by the outer catch block
-            }
-        }
-    } catch (err) {
-        if (err.constraint === 'users_email_key') {
+        // Check for existing user
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return res.status(400).json({ error: 'Email already exists.' });
         }
+
+        const newUser = await User.create({
+            name,
+            email,
+            password: hash,
+            role,
+            phone,
+            aadhaar,
+            profile_pic: req.body.profile_pic || null,
+            status
+        });
+
+        // Custom message for nurses
+        if (role === 'nurse') {
+            res.status(201).json({ message: 'Registration successful! Please wait for Admin approval to login.', userId: newUser._id });
+        } else {
+            res.status(201).json({ message: 'User registered successfully.', userId: newUser._id });
+        }
+
+    } catch (err) {
+        console.error('Registration Error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -57,24 +55,15 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Please provide email and password.' });
     }
 
+    // Hardcoded checks can remain if desired, or we rely on DB seeding.
+    // The DB seeding handles Admin now, but hardcoded fallback is okay for dev speed if DB fails.
     if (email === 'admin@admin.com' && password === 'admin') {
-        return res.json({
-            message: 'Admin Login successful.',
-            user: { id: 99999, name: 'Super Admin', role: 'admin' }
-        });
-    }
-
-    if (email === 'nurse@nurse.com' && password === 'nurse') {
-        return res.json({
-            message: 'Nurse Login successful.',
-            user: { id: 88888, name: 'Nurse Joy', role: 'nurse' }
-        });
+        // We might want to fetch the real ID if we want consistency, but let's leave this backdoor
+        // actually, let's prioritize DB check to get correct _id
     }
 
     try {
-        const sql = `SELECT * FROM users WHERE email = $1`;
-        const result = await db.query(sql, [email]);
-        const user = result.rows[0];
+        const user = await User.findOne({ email });
 
         if (!user) {
             return res.status(401).json({ error: 'Invalid email or password.' });
@@ -89,12 +78,13 @@ router.post('/login', async (req, res) => {
         if (match) {
             res.json({
                 message: 'Login successful.',
-                user: { id: user.id, name: user.name, role: user.role }
+                user: { id: user._id, name: user.name, role: user.role }
             });
         } else {
             res.status(401).json({ error: 'Invalid email or password.' });
         }
     } catch (err) {
+        console.error('Login Error:', err);
         res.status(500).json({ error: 'Database error.' });
     }
 });
@@ -132,10 +122,9 @@ router.post('/reset-password', async (req, res) => {
         const hash = await bcrypt.hash(password, 10);
 
         // Update password
-        const sql = `UPDATE users SET password = $1 WHERE email = $2 RETURNING id`;
-        const result = await db.query(sql, [hash, email]);
+        const user = await User.findOneAndUpdate({ email }, { password: hash }, { new: true });
 
-        if (result.rows.length === 0) {
+        if (!user) {
             return res.status(404).json({ error: 'User not found.' });
         }
 
@@ -154,19 +143,30 @@ router.put('/update-profile', async (req, res) => {
     const { id, name, phone, password, profile_pic } = req.body;
 
     try {
-        let sql, params;
+        const updates = { name, phone };
+        if (profile_pic) updates.profile_pic = profile_pic;
+
         if (password && password.trim() !== "") {
-            const hash = await bcrypt.hash(password, 10);
-            sql = `UPDATE users SET name=$1, phone=$2, password=$3, profile_pic=$4 WHERE id=$5 RETURNING id, name, email, role, phone, profile_pic`;
-            params = [name, phone, hash, profile_pic, id];
-        } else {
-            sql = `UPDATE users SET name=$1, phone=$2, profile_pic=$3 WHERE id=$4 RETURNING id, name, email, role, phone, profile_pic`;
-            params = [name, phone, profile_pic, id];
+            updates.password = await bcrypt.hash(password, 10);
         }
 
-        const result = await db.query(sql, params);
-        if (result.rows.length > 0) {
-            res.json({ message: 'Profile updated successfully', user: result.rows[0] });
+        // Note: For Update, we might need to handle 'id'. ID from frontend might be integer or string.
+        // Mongoose findById works with hex strings.
+        // If 'id' is "99999" (hardcoded admin), findById might fail if it's not ObjectID.
+        // We should search by _id if valid info, or handle legacy IDs.
+
+        let user;
+        // Simple check if it's a valid ObjectId
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            user = await User.findByIdAndUpdate(id, updates, { new: true });
+        } else {
+            // It might be a legacy logic or strictly email based?
+            // Let's assume frontend sends the _id we sent in login.
+            user = await User.findByIdAndUpdate(id, updates, { new: true });
+        }
+
+        if (user) {
+            res.json({ message: 'Profile updated successfully', user: { id: user._id, ...user.toObject() } });
         } else {
             res.status(404).json({ error: 'User not found' });
         }

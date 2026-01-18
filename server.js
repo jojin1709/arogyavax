@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const db = require('./database');
+const { mongoose } = require('./database'); // Ensure DB connects
 
 const authRoutes = require('./routes/auth');
 
@@ -20,15 +20,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api', require('./routes/api'));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/fix-db', async (req, res) => {
-    try {
-        await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic TEXT");
-        res.send("Database schema updated: Added profile_pic column.");
-    } catch (e) {
-        res.status(500).send("Error updating schema: " + e.message);
-    }
 });
 
 // Start Server
